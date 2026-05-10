@@ -1,23 +1,21 @@
-const multer = require("multer");
+import multer from "multer";
 
-const {
+import {
   CloudinaryStorage,
-} = require(
-  "multer-storage-cloudinary"
-);
+} from "multer-storage-cloudinary";
 
-const cloudinary = require(
-  "../config/cloudinary"
-);
+import cloudinary from "../config/cloudinary.js";
 
 const storage =
   new CloudinaryStorage({
+
     cloudinary,
 
     params: async (
       req,
       file
     ) => ({
+
       folder:
         "omniretail-products",
 
@@ -33,37 +31,50 @@ const storage =
         "-" +
         file.originalname
           .split(".")[0],
+
     }),
+
   });
 
-const upload = multer({
-  storage,
+export const upload =
+  multer({
 
-  limits: {
-    fileSize:
-      5 * 1024 * 1024,
-  },
+    storage,
 
-  fileFilter: (
-    req,
-    file,
-    cb
-  ) => {
-    if (
-      file.mimetype.startsWith(
-        "image/"
-      )
-    ) {
-      cb(null, true);
-    } else {
-      cb(
-        new Error(
-          "Only image files are allowed"
-        ),
-        false
-      );
-    }
-  },
-});
+    limits: {
 
-module.exports = upload;
+      fileSize:
+        5 * 1024 * 1024,
+
+    },
+
+    fileFilter: (
+      req,
+      file,
+      cb
+    ) => {
+
+      if (
+        file.mimetype.startsWith(
+          "image/"
+        )
+      ) {
+
+        cb(null, true);
+
+      }
+
+      else {
+
+        cb(
+          new Error(
+            "Only image files are allowed"
+          ),
+          false
+        );
+
+      }
+
+    },
+
+  });
