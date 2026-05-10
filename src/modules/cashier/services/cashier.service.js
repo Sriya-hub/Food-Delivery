@@ -4,29 +4,31 @@ from "../models/order.model.js";
 import Product
 from "../../products/models/product.model.js";
 
+import StoreInventory
+from "../../inventory/models/storeInventory.model.js";
+
 /* =========================================
-   PRODUCT STATUS
+   INVENTORY STATUS
 ========================================= */
 
-const getProductStatus = (
-  stock
-) => {
+const getInventoryStatus =
+  (qty, limit = 10) => {
 
-  if (stock <= 0) {
+    if (qty <= 0) {
 
-    return "Out of Stock";
+      return "Out of Stock";
 
-  }
+    }
 
-  if (stock < 10) {
+    if (qty < limit) {
 
-    return "Low Stock";
+      return "Low Stock";
 
-  }
+    }
 
-  return "Active";
+    return "Active";
 
-};
+  };
 
 /* =========================================
    CREATE ORDER
@@ -88,20 +90,24 @@ export const createOrder =
       }
 
       /* =====================================
-         VALIDATE STOCK
+         VALIDATE INVENTORY
       ===================================== */
 
       for (const item of items) {
 
-        const product =
+        const inventory =
 
-          await Product.findById(
-            item._id
-          );
+          await StoreInventory
 
-        /* PRODUCT NOT FOUND */
+          .findById(
+            item.inventory_id
+          )
 
-        if (!product) {
+          .populate("product");
+
+        /* NOT FOUND */
+
+        if (!inventory) {
 
           throw new Error(
 
@@ -111,9 +117,18 @@ export const createOrder =
 
         }
 
+        /* PRODUCT */
+
+        const product =
+          inventory.product;
+
         /* OUT OF STOCK */
 
-        if (product.stock <= 0) {
+        if (
+
+          inventory.quantity <= 0
+
+        ) {
 
           throw new Error(
 
@@ -123,7 +138,7 @@ export const createOrder =
 
         }
 
-        /* INVALID QUANTITY */
+        /* INVALID QTY */
 
         if (
 
@@ -147,13 +162,13 @@ export const createOrder =
 
           item.qty >
 
-          product.stock
+          inventory.quantity
 
         ) {
 
           throw new Error(
 
-            `Only ${product.stock} stock available for ${product.name}`
+            `Only ${inventory.quantity} stock available for ${product.name}`
 
           );
 
@@ -162,42 +177,56 @@ export const createOrder =
       }
 
       /* =====================================
-         UPDATE STOCK
+         UPDATE INVENTORY
       ===================================== */
 
       for (const item of items) {
 
-        const product =
+        const inventory =
 
-          await Product.findById(
-            item._id
-          );
+          await StoreInventory
+
+          .findById(
+            item.inventory_id
+          )
+
+          .populate("product");
 
         /* REDUCE STOCK */
 
-        product.stock =
+        inventory.quantity =
 
-          Number(product.stock) -
+          Number(
+            inventory.quantity
+          ) -
 
           Number(item.qty);
 
         /* NEVER NEGATIVE */
 
-        if (product.stock < 0) {
+        if (
 
-          product.stock = 0;
+          inventory.quantity < 0
+
+        ) {
+
+          inventory.quantity = 0;
 
         }
 
-        /* UPDATE STATUS */
+        /* STATUS */
 
-        product.status =
+        inventory.status =
 
-          getProductStatus(
-            product.stock
+          getInventoryStatus(
+
+            inventory.quantity,
+
+            inventory.lowStockLimit
+
           );
 
-        await product.save();
+        await inventory.save();
 
       }
 
@@ -210,7 +239,10 @@ export const createOrder =
         items.map((item) => ({
 
           productId:
-            item._id,
+            item.product_id,
+
+          inventoryId:
+            item.inventory_id,
 
           name:
             item.name,
@@ -275,7 +307,7 @@ export const createOrder =
 
           paymentStatus,
 
-          /* ORDER STATUS */
+          /* STATUS */
 
           orderStatus,
 
@@ -315,7 +347,7 @@ export const createOrder =
   };
 
 /* =========================================
-   GET ALL ORDERS
+   GET ORDERS
 ========================================= */
 
 export const getOrders =
