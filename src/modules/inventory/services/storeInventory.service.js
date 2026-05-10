@@ -110,7 +110,7 @@ export const assignProductToStore =
   };
 
 /* =========================================
-   GET STORE INVENTORY
+   GET SINGLE STORE INVENTORY
 ========================================= */
 
 export const getStoreInventory =
@@ -145,6 +145,49 @@ export const getStoreInventory =
       console.log(
 
         "GET STORE INVENTORY ERROR:",
+
+        err
+
+      );
+
+      throw err;
+
+    }
+
+  };
+
+/* =========================================
+   GET ALL STORES INVENTORY
+========================================= */
+
+export const getAllInventory =
+  async () => {
+
+    try {
+
+      const inventory =
+
+        await StoreInventory.find()
+
+        .populate("product")
+
+        .populate("store")
+
+        .sort({
+
+          createdAt: -1,
+
+        });
+
+      return inventory;
+
+    }
+
+    catch (err) {
+
+      console.log(
+
+        "GET ALL INVENTORY ERROR:",
 
         err
 
