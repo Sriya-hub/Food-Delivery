@@ -12,76 +12,45 @@ export const getProducts =
     try {
 
       const query =
-
         search
-
           ? {
-
               $or: [
-
                 {
-
                   name: {
-
                     $regex: search,
-
                     $options: "i",
-
                   },
-
                 },
 
                 {
-
                   sku: {
-
                     $regex: search,
-
                     $options: "i",
-
                   },
-
                 },
 
                 {
-
                   category: {
-
                     $regex: search,
-
                     $options: "i",
-
                   },
-
                 },
 
                 {
-
                   brand: {
-
                     $regex: search,
-
                     $options: "i",
-
                   },
-
                 },
-
               ],
-
             }
-
           : {};
 
       const products =
-
         await Product.find(query)
-
-        .sort({
-
-          createdAt: -1,
-
-        });
+          .sort({
+            createdAt: -1,
+          });
 
       console.log(
         "SERVICE PRODUCTS:",
@@ -120,35 +89,22 @@ export const addProduct =
       /* VALIDATION */
 
       if (
-
         !data.name ||
-
         !data.sku ||
-
         !data.category ||
-
         !data.price
-
       ) {
 
         throw new Error(
-
           "Please fill all required fields"
-
         );
 
       }
 
-      if (
-
-        isNaN(price)
-
-      ) {
+      if (isNaN(price)) {
 
         throw new Error(
-
           "Invalid price"
-
         );
 
       }
@@ -156,19 +112,14 @@ export const addProduct =
       /* CHECK SKU */
 
       const existingSku =
-
         await Product.findOne({
-
           sku: data.sku,
-
         });
 
       if (existingSku) {
 
         throw new Error(
-
           "SKU already exists"
-
         );
 
       }
@@ -176,26 +127,16 @@ export const addProduct =
       /* QR DATA */
 
       const qrData =
-
         JSON.stringify({
-
-          sku:
-            data.sku,
-
-          name:
-            data.name,
-
-          category:
-            data.category,
-
+          sku: data.sku,
+          name: data.name,
+          category: data.category,
           price,
-
         });
 
       /* QR IMAGE */
 
       const qrCodeImage =
-
         await QRCode.toDataURL(
           qrData
         );
@@ -203,7 +144,6 @@ export const addProduct =
       /* CREATE PRODUCT */
 
       const product =
-
         await Product.create({
 
           name:
@@ -232,10 +172,11 @@ export const addProduct =
 
           price,
 
-          image:
+          /* CLOUDINARY URL */
 
+          image:
             file
-              ? file.filename
+              ? file.path
               : null,
 
           qrCode:
@@ -271,13 +212,9 @@ export const addProduct =
 
 export const updateProduct =
   async (
-
     id,
-
     data,
-
     file
-
   ) => {
 
     try {
@@ -285,16 +222,10 @@ export const updateProduct =
       const price =
         Number(data.price);
 
-      if (
-
-        isNaN(price)
-
-      ) {
+      if (isNaN(price)) {
 
         throw new Error(
-
           "Invalid price"
-
         );
 
       }
@@ -329,37 +260,29 @@ export const updateProduct =
 
       };
 
+      /* UPDATE IMAGE */
+
       if (file) {
 
         updatedData.image =
-          file.filename;
+          file.path;
 
       }
 
       const product =
-
         await Product.findByIdAndUpdate(
-
           id,
-
           updatedData,
-
           {
-
             new: true,
-
             runValidators: true,
-
           }
-
         );
 
       if (!product) {
 
         throw new Error(
-
           "Product not found"
-
         );
 
       }
@@ -396,7 +319,6 @@ export const deleteProduct =
     try {
 
       const product =
-
         await Product.findByIdAndDelete(
           id
         );
@@ -404,9 +326,7 @@ export const deleteProduct =
       if (!product) {
 
         throw new Error(
-
           "Product not found"
-
         );
 
       }
@@ -443,19 +363,14 @@ export const getProductBySku =
     try {
 
       const product =
-
         await Product.findOne({
-
           sku,
-
         });
 
       if (!product) {
 
         throw new Error(
-
           "Product not found"
-
         );
 
       }
