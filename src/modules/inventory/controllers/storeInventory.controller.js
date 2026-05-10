@@ -1,8 +1,10 @@
-import {
+\import {
 
   assignProductToStore as assignProductToStoreService,
 
   getStoreInventory as getStoreInventoryService,
+
+  getAllInventory as getAllInventoryService,
 
   updateInventoryQuantity as updateInventoryQuantityService,
 
@@ -44,7 +46,7 @@ export const assignProductToStore =
   };
 
 /* =========================================
-   GET STORE INVENTORY
+   GET SINGLE STORE INVENTORY
 ========================================= */
 
 export const getStoreInventory =
@@ -67,6 +69,39 @@ export const getStoreInventory =
       console.log(
 
         "GET STORE INVENTORY CONTROLLER ERROR:",
+
+        err
+
+      );
+
+      throw err;
+
+    }
+
+  };
+
+/* =========================================
+   GET ALL INVENTORY
+========================================= */
+
+export const getAllInventory =
+  async () => {
+
+    try {
+
+      const inventory =
+
+        await getAllInventoryService();
+
+      return inventory;
+
+    }
+
+    catch (err) {
+
+      console.log(
+
+        "GET ALL INVENTORY CONTROLLER ERROR:",
 
         err
 
