@@ -3,23 +3,31 @@ import loginService from "../services/login.service.js";
 /* ================= LOGIN ================= */
 
 const login = async (
+
   req,
-  res,
-  next
+  res
+
 ) => {
 
   try {
 
+    /* ================= BODY ================= */
+
     const {
+
       username,
       password
+
     } = req.body;
 
     /* ================= VALIDATION ================= */
 
     if (
+
       !username ||
+
       !password
+
     ) {
 
       return res.status(400).json({
@@ -28,18 +36,26 @@ const login = async (
 
         message:
           "Username and password required"
+
       });
+
     }
 
     /* ================= LOGIN SERVICE ================= */
 
     const result =
+
       await loginService({
 
         username,
-
         password
+
       });
+
+    /* ================= USER ================= */
+
+    const user =
+      result.user;
 
     /* ================= SUCCESS ================= */
 
@@ -54,42 +70,113 @@ const login = async (
         result.token,
 
       mustChangePassword:
-        result.user
-          .mustChangePassword,
+        user.mustChangePassword,
 
       user: {
 
+        /* ================= IDS ================= */
+
         _id:
-          result.user._id,
+          user._id,
+
+        staff_code:
+          user.staff_code ||
+
+          "",
+
+        /* ================= BASIC ================= */
 
         name:
-          result.user.name,
+          user.name,
 
         email:
-          result.user.email,
+          user.email,
 
         username:
-          result.user.username,
+          user.username,
+
+        phone:
+          user.phone ||
+
+          "",
+
+        address:
+          user.address ||
+
+          "",
+
+        /* ================= ROLE ================= */
 
         role:
-          result.user.role,
+          user.role,
 
         status:
-          result.user.status,
+          user.status,
+
+        /* ================= STORE ================= */
 
         store_id:
-          result.user.store_id,
+          user.store_id?._id ||
+
+          user.store_id ||
+
+          "",
+
+        store_code:
+          user.store_id?.store_code ||
+
+          "",
+
+        store_name:
+          user.store_id?.name ||
+
+          "",
+
+        store_address:
+          user.store_id?.address ||
+
+          "",
+
+        /* ================= PROFILE ================= */
 
         profileImage:
-          result.user.profileImage
+          user.profileImage ||
+
+          "",
+
+        /* ================= PASSWORD ================= */
+
+        mustChangePassword:
+          user.mustChangePassword ||
+
+          false,
+
+        /* ================= LOGIN TRACKING ================= */
+
+        loginCount:
+          user.loginCount ||
+
+          0,
+
+        lastLogin:
+          user.lastLogin ||
+
+          null,
+
       }
+
     });
 
-  } catch (err) {
+  }
+
+  catch (err) {
 
     console.error(
+
       "🔥 LOGIN ERROR:",
+
       err.message
+
     );
 
     return res.status(401).json({
@@ -97,12 +184,19 @@ const login = async (
       success: false,
 
       message:
+
         err.message ||
+
         "Login failed"
+
     });
+
   }
+
 };
 
 export default {
+
   login
+
 };
