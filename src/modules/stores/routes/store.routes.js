@@ -1,70 +1,66 @@
 import express from "express";
 
+/* =========================================
+   STORE CONTROLLERS
+========================================= */
+
 import {
-
-  assignProductToStore,
-
-  getStoreInventory,
-
-  getAllInventory,
-
-  updateInventoryQuantity,
-
-} from "../controllers/storeInventory.controller.js";
+  getStores,
+  getStore,
+  addStore,
+  updateStore,
+  deleteStore,
+} from "../controllers/store.controller.js";
 
 /* =========================================
    ROUTER
 ========================================= */
 
-const router =
-  express.Router();
+const router = express.Router();
 
 /* =========================================
-   ASSIGN PRODUCT
+   GET ALL STORES
+========================================= */
+
+router.get(
+  "/",
+  getStores
+);
+
+/* =========================================
+   GET SINGLE STORE
+========================================= */
+
+router.get(
+  "/:id",
+  getStore
+);
+
+/* =========================================
+   CREATE STORE
 ========================================= */
 
 router.post(
-
-  "/assign",
-
-  assignProductToStore
-
+  "/",
+  addStore
 );
 
 /* =========================================
-   GET STORE INVENTORY
-========================================= */
-
-router.get(
-
-  "/store/:storeId",
-
-  getStoreInventory
-
-);
-
-/* =========================================
-   GET ALL INVENTORY
-========================================= */
-
-router.get(
-
-  "/all",
-
-  getAllInventory
-
-);
-
-/* =========================================
-   UPDATE INVENTORY
+   UPDATE STORE
 ========================================= */
 
 router.put(
+  "/:id",
+  updateStore
+);
 
-  "/:inventoryId",
+/* =========================================
+   DELETE STORE
+========================================= */
 
-  updateInventoryQuantity
-
+router.delete(
+  "/:id",
+  deleteStore
 );
 
 /* =========================================
