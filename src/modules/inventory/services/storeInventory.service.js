@@ -14,58 +14,79 @@ export const assignProductToStore =
     try {
 
       const {
-
         store,
-
         product,
-
         quantity,
-
         lowStockLimit,
-
       } = data;
 
-      /* VALIDATION */
+      /* =====================================
+         VALIDATION
+      ===================================== */
 
-      if (
-
-        !store ||
-
-        !product
-
-      ) {
+      if (!store || !product) {
 
         throw new Error(
-
           "Store and Product are required"
-
         );
 
       }
 
-      /* CHECK EXISTING */
+      /* =====================================
+         CHECK STORE EXISTS
+      ===================================== */
+
+      const storeExists =
+        await Store.findById(store);
+
+      if (!storeExists) {
+
+        throw new Error(
+          "Store not found"
+        );
+
+      }
+
+      /* =====================================
+         CHECK PRODUCT EXISTS
+      ===================================== */
+
+      const productExists =
+        await Product.findById(product);
+
+      if (!productExists) {
+
+        throw new Error(
+          "Product not found"
+        );
+
+      }
+
+      /* =====================================
+         CHECK EXISTING INVENTORY
+      ===================================== */
 
       const existingInventory =
-
         await StoreInventory.findOne({
 
           store,
-
           product,
 
         });
 
-      /* IF EXISTS -> UPDATE */
+      /* =====================================
+         UPDATE EXISTING
+      ===================================== */
 
       if (existingInventory) {
 
         existingInventory.quantity +=
           Number(quantity || 0);
 
-        if (lowStockLimit) {
+        if (lowStockLimit !== undefined) {
 
           existingInventory.lowStockLimit =
-            lowStockLimit;
+            Number(lowStockLimit);
 
         }
 
@@ -75,10 +96,11 @@ export const assignProductToStore =
 
       }
 
-      /* CREATE NEW */
+      /* =====================================
+         CREATE NEW INVENTORY
+      ===================================== */
 
       const inventory =
-
         await StoreInventory.create({
 
           store,
@@ -100,11 +122,8 @@ export const assignProductToStore =
     catch (err) {
 
       console.log(
-
         "ASSIGN PRODUCT SERVICE ERROR:",
-
         err
-
       );
 
       throw err;
@@ -122,22 +141,31 @@ export const getStoreInventory =
 
     try {
 
-      const inventory =
+      if (!storeId) {
 
+        throw new Error(
+          "Store ID is required"
+        );
+
+      }
+
+      const inventory =
         await StoreInventory.find({
 
           store: storeId,
 
         })
 
-        .populate("product")
+        .populate({
+          path: "product",
+        })
 
-        .populate("store")
+        .populate({
+          path: "store",
+        })
 
         .sort({
-
           createdAt: -1,
-
         });
 
       return inventory;
@@ -147,11 +175,8 @@ export const getStoreInventory =
     catch (err) {
 
       console.log(
-
         "GET STORE INVENTORY ERROR:",
-
         err
-
       );
 
       throw err;
@@ -161,7 +186,7 @@ export const getStoreInventory =
   };
 
 /* =========================================
-   GET ALL STORES INVENTORY
+   GET ALL INVENTORY
 ========================================= */
 
 export const getAllInventory =
@@ -170,17 +195,18 @@ export const getAllInventory =
     try {
 
       const inventory =
-
         await StoreInventory.find()
 
-        .populate("product")
+        .populate({
+          path: "product",
+        })
 
-        .populate("store")
+        .populate({
+          path: "store",
+        })
 
         .sort({
-
           createdAt: -1,
-
         });
 
       return inventory;
@@ -190,11 +216,8 @@ export const getAllInventory =
     catch (err) {
 
       console.log(
-
         "GET ALL INVENTORY ERROR:",
-
         err
-
       );
 
       throw err;
@@ -209,29 +232,29 @@ export const getAllInventory =
 
 export const updateInventoryQuantity =
   async (
-
     inventoryId,
-
     quantity
-
   ) => {
 
     try {
 
+      if (!inventoryId) {
+
+        throw new Error(
+          "Inventory ID is required"
+        );
+
+      }
+
       const inventory =
-
         await StoreInventory.findById(
-
           inventoryId
-
         );
 
       if (!inventory) {
 
         throw new Error(
-
           "Inventory not found"
-
         );
 
       }
@@ -248,11 +271,8 @@ export const updateInventoryQuantity =
     catch (err) {
 
       console.log(
-
         "UPDATE INVENTORY ERROR:",
-
         err
-
       );
 
       throw err;
