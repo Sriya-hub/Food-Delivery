@@ -1,63 +1,77 @@
 import mongoose from "mongoose";
 
+/* =========================================
+   STORE SCHEMA
+========================================= */
+
 const storeSchema = new mongoose.Schema(
   {
-    // 🔥 HUMAN-READABLE UNIQUE CODE (STR001)
+    // 🔥 UNIQUE STORE CODE
     store_code: {
       type: String,
       required: true,
       unique: true,
       uppercase: true,
-      trim: true
+      trim: true,
     },
 
     // 🔥 STORE NAME
     name: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
 
-    // 🔥 LOCATION (CITY / AREA)
+    // 🔥 LOCATION
     location: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
 
-    // 🔥 FULL ADDRESS
+    // 🔥 ADDRESS
     address: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
 
     // 🔥 PINCODE
     pincode: {
       type: String,
       required: true,
-      trim: true
+      trim: true,
     },
 
     // 🔥 STATE
     state: {
       type: String,
-      trim: true
+      trim: true,
     },
 
-    // 🔥 OPTIONAL: ACTIVE FLAG (for future scaling)
+    // 🔥 ACTIVE STATUS
     isActive: {
       type: Boolean,
-      default: true
-    }
+      default: true,
+    },
   },
   {
-    timestamps: true
+    timestamps: true,
   }
 );
 
-// 🔥 INDEX FOR FAST SEARCH
+/* =========================================
+   INDEXES
+========================================= */
+
 storeSchema.index({ store_code: 1 });
+
 storeSchema.index({ name: 1 });
 
-export default mongoose.model("Store", storeSchema);
+/* =========================================
+   EXPORT MODEL
+========================================= */
+
+const Store = mongoose.model("Store", storeSchema);
+
+export default Store;
