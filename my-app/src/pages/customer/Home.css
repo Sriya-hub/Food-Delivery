@@ -1,0 +1,19 @@
+.home {
+  width: 100%;
+  min-height: 100vh;
+
+  background-color: #f8f9fb;
+}
+
+/* RESTAURANT SECTION */
+
+.restaurant-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 30px;
+
+  padding: 50px;
+}
