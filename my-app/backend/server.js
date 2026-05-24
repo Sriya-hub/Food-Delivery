@@ -49,6 +49,18 @@ app.use(
   require("./routes/login.routes")
 );
 
+
+app.use(
+  "/api/admin",
+
+  require("./routes/admin.routes")
+);
+
+app.use(
+  "/api/merchant",
+
+  require("./routes/merchant.routes")
+);
 /* =========================
    TEST ROUTE
 ========================= */

@@ -1,0 +1,165 @@
+.admin-page {
+  display: flex;
+
+  min-height: 100vh;
+
+  background-color: #f8f9fb;
+}
+
+/* SIDEBAR */
+
+.admin-sidebar {
+  width: 260px;
+
+  background-color: #111827;
+
+  color: white;
+
+  padding: 40px 20px;
+}
+
+.admin-sidebar h2 {
+  font-size: 30px;
+
+  margin-bottom: 40px;
+}
+
+.admin-sidebar ul {
+  list-style: none;
+}
+
+.admin-sidebar li {
+  padding: 16px;
+
+  margin-bottom: 12px;
+
+  border-radius: 12px;
+
+  cursor: pointer;
+
+  transition: 0.3s;
+}
+
+.admin-sidebar li:hover {
+  background-color: #1f2937;
+}
+
+/* CONTENT */
+
+.admin-content {
+  flex: 1;
+
+  padding: 40px;
+}
+
+.admin-content h1 {
+  font-size: 42px;
+
+  margin-bottom: 40px;
+}
+
+/* MERCHANT LIST */
+
+.merchant-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 25px;
+}
+
+.merchant-card {
+  background-color: white;
+
+  padding: 30px;
+
+  border-radius: 20px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  box-shadow: 0px 5px 20px rgba(0,0,0,0.08);
+}
+
+.merchant-card h2 {
+  margin-bottom: 10px;
+
+  color: #222;
+}
+
+.merchant-card p {
+  margin-bottom: 8px;
+
+  color: gray;
+}
+
+/* STATUS */
+
+.status {
+  display: inline-block;
+
+  margin-top: 12px;
+
+  padding: 8px 18px;
+
+  border-radius: 10px;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pending {
+  background-color: #fff3cd;
+
+  color: #856404;
+}
+
+.approved {
+  background-color: #d4edda;
+
+  color: #155724;
+}
+
+.rejected {
+  background-color: #f8d7da;
+
+  color: #721c24;
+}
+
+/* BUTTONS */
+
+.action-buttons {
+  display: flex;
+
+  gap: 15px;
+}
+
+.approve-btn {
+  padding: 12px 22px;
+
+  border: none;
+  border-radius: 12px;
+
+  background-color: #28a745;
+
+  color: white;
+
+  cursor: pointer;
+
+  font-weight: 600;
+}
+
+.reject-btn {
+  padding: 12px 22px;
+
+  border: none;
+  border-radius: 12px;
+
+  background-color: #dc3545;
+
+  color: white;
+
+  cursor: pointer;
+
+  font-weight: 600;
+}
