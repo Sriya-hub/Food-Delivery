@@ -1,149 +1,390 @@
-.merchant-page {
-  width: 100%;
-  min-height: 100vh;
+/* ============================================================
+   MERCHANT REGISTRATION — OmniRetail
+   Syne × Plus Jakarta Sans · Orange brand system
+   ============================================================ */
 
-  display: flex;
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
-  background-color: #f8f9fb;
+:root {
+  --orange:   #ff6b2b;
+  --orange2:  #ff9f1c;
+  --pink:     #ff3b7a;
+  --purple:   #7c3aed;
+  --dark:     #0d0d14;
+  --charcoal: #1a1a2e;
+  --muted:    #8b8fa8;
+  --cream:    #fff9f4;
+  --white:    #ffffff;
+  --border:   #ede8e2;
+  --grad1:    linear-gradient(135deg,#ff6b2b 0%,#ff3b7a 50%,#7c3aed 100%);
+  --grad2:    linear-gradient(135deg,#ff9f1c 0%,#ff6b2b 100%);
+  --error:    #ef4444;
+  --r:        16px;
 }
 
-/* LEFT SIDE */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-.merchant-left {
+/* ══════════ PAGE LAYOUT ══════════ */
+.mr-page {
+  display: flex;
+  min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--cream);
+}
+
+/* ══════════ LEFT PANEL ══════════ */
+.mr-left {
   flex: 1;
-
-  background-image: url("https://images.unsplash.com/photo-1552566626-52f8b828add9");
-
+  position: relative;
+  background-image: url("https://images.unsplash.com/photo-1552566626-52f8b828add9?q=80&w=1200&auto=format&fit=crop");
   background-size: cover;
   background-position: center;
-
-  position: relative;
+  min-height: 100vh;
 }
 
-.merchant-overlay {
-  width: 100%;
-  height: 100%;
-
-  background-color: rgba(0,0,0,0.6);
-
+.mr-left__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, rgba(13,13,20,.88) 0%, rgba(124,58,237,.35) 60%, rgba(255,59,122,.2) 100%);
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-
-  padding: 60px;
-
-  color: white;
-}
-
-.merchant-overlay h1 {
-  font-size: 60px;
-
-  margin-bottom: 25px;
-}
-
-.merchant-overlay p {
-  font-size: 22px;
-
-  line-height: 1.7;
-}
-
-/* RIGHT SIDE */
-
-.merchant-right {
-  flex: 1;
-
-  display: flex;
-  justify-content: center;
   align-items: center;
-
-  padding: 40px;
+  padding: 64px;
 }
 
-.merchant-box {
-  width: 500px;
+.mr-left__content { max-width: 420px; }
 
-  background-color: white;
+.mr-left__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,107,43,.18);
+  border: 1px solid rgba(255,107,43,.35);
+  color: var(--orange2);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
 
-  padding: 50px;
+.mr-left__heading {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2.4rem, 3.5vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -.03em;
+  color: #fff;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #fff 40%, var(--orange2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 
-  border-radius: 24px;
+.mr-left__sub {
+  font-size: .95rem;
+  color: rgba(255,255,255,.55);
+  line-height: 1.75;
+  font-weight: 300;
+  margin-bottom: 40px;
+}
 
-  box-shadow: 0px 5px 25px rgba(0,0,0,0.08);
+.mr-left__stats {
+  display: flex;
+  gap: 0;
+}
 
+.mr-left__stat {
   display: flex;
   flex-direction: column;
-
-  gap: 20px;
+  gap: 3px;
+  padding: 12px 24px;
+  border-right: 1px solid rgba(255,255,255,.12);
 }
 
-.merchant-box h1 {
-  font-size: 38px;
+.mr-left__stat:first-child { padding-left: 0; }
+.mr-left__stat:last-child  { border-right: none; }
 
-  color: #222;
+.mr-left__stat strong {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 800;
+  background: var(--grad2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.merchant-subtitle {
-  color: gray;
-
-  margin-bottom: 10px;
+.mr-left__stat span {
+  font-size: .68rem;
+  color: rgba(255,255,255,.4);
+  text-transform: uppercase;
+  letter-spacing: .07em;
 }
 
-.merchant-box input,
-.merchant-box textarea,
-.merchant-box select {
-  padding: 16px;
-
-  border: 1px solid #ddd;
-
-  border-radius: 14px;
-
-  font-size: 16px;
-
-  outline: none;
-
-  transition: 0.3s;
-}
-
-.merchant-box textarea {
-  height: 120px;
-
-  resize: none;
-}
-
-.merchant-box input:focus,
-.merchant-box textarea:focus,
-.merchant-box select:focus {
-  border-color: #ff5a5f;
-}
-
-.time-row {
-  display: flex;
-
-  gap: 20px;
-}
-
-.time-row input {
+/* ══════════ RIGHT PANEL ══════════ */
+.mr-right {
   flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 48px 40px;
+  overflow-y: auto;
 }
 
-.merchant-btn {
-  padding: 16px;
+.mr-box {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
 
-  border: none;
-  border-radius: 14px;
+/* Header */
+.mr-box__header { text-align: center; margin-bottom: 4px; }
 
-  background-color: #ff5a5f;
+.mr-box__icon {
+  font-size: 2.4rem;
+  display: block;
+  margin-bottom: 12px;
+}
 
-  color: white;
+.mr-box__header h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--charcoal);
+  letter-spacing: -.03em;
+  margin-bottom: 6px;
+}
 
-  font-size: 17px;
-  font-weight: 600;
+.mr-box__header p {
+  font-size: .85rem;
+  color: var(--muted);
+}
 
+/* ══════════ IMAGE UPLOAD ══════════ */
+.mr-upload {
+  position: relative;
+  border: 2px dashed var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
   cursor: pointer;
-
-  transition: 0.3s;
+  transition: border-color .2s, background .2s;
+  background: var(--white);
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.merchant-btn:hover {
-  background-color: #e6484d;
+.mr-upload:hover {
+  border-color: var(--orange);
+  background: rgba(255,107,43,.03);
+}
+
+.mr-upload__preview {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.mr-upload__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px;
+}
+
+.mr-upload__icon { font-size: 2rem; }
+
+.mr-upload__label {
+  font-size: .88rem;
+  font-weight: 700;
+  color: var(--charcoal);
+}
+
+.mr-upload__hint {
+  font-size: .74rem;
+  color: var(--muted);
+}
+
+.mr-upload__change {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(13,13,20,.65);
+  color: #fff;
+  text-align: center;
+  font-size: .78rem;
+  font-weight: 700;
+  padding: 10px;
+  backdrop-filter: blur(4px);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+/* ══════════ FORM FIELDS ══════════ */
+.mr-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.mr-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.mr-field--full { grid-column: 1 / -1; }
+
+.mr-field label {
+  font-size: .74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--charcoal);
+}
+
+.mr-field input,
+.mr-field textarea,
+.mr-field select {
+  padding: 13px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  font-size: .88rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--charcoal);
+  background: var(--white);
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.mr-field textarea {
+  height: 100px;
+  resize: none;
+  line-height: 1.6;
+}
+
+.mr-field input:focus,
+.mr-field textarea:focus,
+.mr-field select:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 4px rgba(255,107,43,.1);
+}
+
+.mr-field--error input,
+.mr-field--error textarea,
+.mr-field--error select {
+  border-color: var(--error);
+  box-shadow: 0 0 0 3px rgba(239,68,68,.08);
+}
+
+.mr-field__err {
+  font-size: .72rem;
+  color: var(--error);
+  font-weight: 600;
+}
+
+/* ── Type selector buttons ── */
+.mr-type-btns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mr-type-btn {
+  flex: 1;
+  min-width: 120px;
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  background: var(--white);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--charcoal);
+  cursor: pointer;
+  transition: all .2s;
+  text-align: center;
+}
+
+.mr-type-btn:hover {
+  border-color: var(--orange);
+  color: var(--orange);
+}
+
+.mr-type-btn--active {
+  background: var(--grad1);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(255,59,122,.3);
+}
+
+/* ══════════ SUBMIT BUTTON ══════════ */
+.mr-submit {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: var(--r);
+  background: var(--grad1);
+  color: #fff;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: .95rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 8px 28px rgba(255,59,122,.35), 0 4px 12px rgba(255,107,43,.25);
+  transition: transform .2s, box-shadow .2s, opacity .2s;
+}
+
+.mr-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(255,59,122,.45);
+}
+
+.mr-submit:disabled { opacity: .65; cursor: not-allowed; }
+
+.mr-submit--loading { opacity: .8; }
+
+.mr-submit__spinner {
+  width: 16px;
+  height: 16px;
+  border: 2.5px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Note */
+.mr-note {
+  text-align: center;
+  font-size: .78rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* ══════════ RESPONSIVE ══════════ */
+@media (max-width: 900px) {
+  .mr-left { display: none; }
+  .mr-right { padding: 32px 20px; }
+}
+
+@media (max-width: 480px) {
+  .mr-fields { grid-template-columns: 1fr; }
+  .mr-field--full { grid-column: 1; }
+  .mr-type-btns { flex-direction: column; }
 }

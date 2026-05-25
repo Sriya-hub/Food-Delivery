@@ -104,6 +104,21 @@ app.use(
   require("./routes/payment.routes")
 );
 
+app.use(
+
+  "/api/merchant-settings",
+
+  require("./routes/merchantsettings.routes")
+);
+
+
+app.use(
+
+  "/api/orders",
+
+  require("./routes/orders.routes")
+);
+
 /* =========================
    TEST ROUTE
 ========================= */

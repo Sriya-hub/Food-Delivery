@@ -17,10 +17,29 @@ const CAT_EMOJI = {
   burger: "🍔", indian: "🍛", desserts: "🧁", dessert: "🧁",
   chinese: "🥡", mexican: "🌮", thai: "🍲", bbq: "🍖",
   seafood: "🦞", vegan: "🌱", sandwich: "🥪", coffee: "☕",
+  biryani: "🍛", south: "🥘", north: "🍲", street: "🌯",
+  snacks: "🍟", juice: "🥤", sweets: "🍮", rolls: "🌯",
   default: "🍽",
 };
 const getEmoji = (label = "") =>
   CAT_EMOJI[label.toLowerCase()] || CAT_EMOJI.default;
+
+function formatTime(t) {
+  if (!t) return "";
+  const [h, m] = t.split(":").map(Number);
+  const ampm = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${m.toString().padStart(2, "0")} ${ampm}`;
+}
+
+function isOpen(opening, closing) {
+  if (!opening || !closing) return null;
+  const now = new Date();
+  const [oh, om] = opening.split(":").map(Number);
+  const [ch, cm] = closing.split(":").map(Number);
+  const cur = now.getHours() * 60 + now.getMinutes();
+  return cur >= oh * 60 + om && cur <= ch * 60 + cm;
+}
 
 function StarRating({ rating = 0 }) {
   const r = Math.round(rating);
@@ -32,43 +51,73 @@ function StarRating({ rating = 0 }) {
   );
 }
 
+/* ── Restaurant Card ── */
 function RestaurantCard({ r, onBook }) {
   const navigate = useNavigate();
-  const img = r.image || r.coverImage || r.logo;
-  const cuisines = r.cuisineType || r.cuisine || [];
-  const menus = (r.menuItems || r.menu || []).slice(0, 3);
+  const open = isOpen(r.openingTime, r.closingTime);
+  const cuisine = r.restaurantType || "";
 
   return (
     <div className="r-card" onClick={() => navigate(`/restaurant/${r._id}`)}>
+      {/* Image */}
       <div className="r-card__img">
-        {img
-          ? <img src={img} alt={r.name} loading="lazy" />
-          : <span className="r-card__img-placeholder">🍽</span>}
-        {r.isOpen !== false && <span className="badge badge--open">Open</span>}
-        {r.deliveryTime && <span className="badge badge--time">🕐 {r.deliveryTime}</span>}
-      </div>
-      <div className="r-card__body">
-        <div className="r-card__top">
-          <h3>{r.name}</h3>
-          <StarRating rating={r.rating || r.averageRating || 4.2} />
-        </div>
-        {cuisines.length > 0 && (
-          <p className="r-card__cuisines">{cuisines.slice(0, 3).join(" · ")}</p>
-        )}
-        {menus.length > 0 && (
-          <div className="r-card__menu">
-            {menus.map((item, i) => (
-              <span key={i} className="menu-chip">
-                {item.name}{item.price ? ` ₹${item.price}` : ""}
-              </span>
-            ))}
-          </div>
-        )}
-        <div className="r-card__footer">
-          <span className="r-card__delivery">
-            {r.deliveryFee ? `₹${r.deliveryFee} delivery` : "Free delivery"}
+        {r.restaurantImage
+          ? <img src={r.restaurantImage} alt={r.restaurantName} loading="lazy" />
+          : <span className="r-card__img-placeholder">🍽</span>
+        }
+        {open !== null && (
+          <span className={`badge ${open ? "badge--open" : "badge--closed"}`}>
+            <span className="badge-dot" />
+            {open ? "Open Now" : "Closed"}
           </span>
-          <button className="btn-book" onClick={e => { e.stopPropagation(); onBook(r); }}>
+        )}
+      </div>
+
+      {/* Body */}
+      <div className="r-card__body">
+        {/* Name — hero */}
+        <div className="r-card__top">
+          <h3 className="r-card__name">{r.restaurantName}</h3>
+          <StarRating rating={r.rating || 4.2} />
+        </div>
+
+        {/* Cuisine */}
+        {cuisine && (
+          <p className="r-card__cuisines">
+            {getEmoji(cuisine)} {cuisine}
+          </p>
+        )}
+
+        {/* Hours block */}
+        <div className="r-card__hours">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 6v6l4 2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <div>
+            <span className="r-card__hours-label">Hours</span>
+            <span className="r-card__hours-value">
+              {formatTime(r.openingTime)} — {formatTime(r.closingTime)}
+            </span>
+          </div>
+        </div>
+
+        {/* Address */}
+        <p className="r-card__address">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+            <circle cx="12" cy="9" r="2.5" />
+          </svg>
+          {r.restaurantAddress}
+        </p>
+
+        {/* Footer */}
+        <div className="r-card__footer">
+          <span className="r-card__delivery">Free delivery</span>
+          <button
+            className="btn-book"
+            onClick={e => { e.stopPropagation(); onBook(r); }}
+          >
             Reserve Table
           </button>
         </div>
@@ -77,6 +126,33 @@ function RestaurantCard({ r, onBook }) {
   );
 }
 
+/* ── Recommended Menu Item Card ── */
+function MenuItemCard({ item }) {
+  const navigate = useNavigate();
+  return (
+    <div
+      className="menu-item-card"
+      onClick={() => navigate(`/restaurant/${item.restaurantId}`)}
+    >
+      <div className="menu-item-card__img">
+        {item.image
+          ? <img src={item.image} alt={item.name} loading="lazy" />
+          : <span className="menu-item-card__placeholder">{getEmoji(item.category || "")}</span>
+        }
+      </div>
+      <div className="menu-item-card__body">
+        <p className="menu-item-card__name">{item.name}</p>
+        <p className="menu-item-card__restaurant">{item.restaurantName}</p>
+        <div className="menu-item-card__footer">
+          {item.price && <span className="menu-item-card__price">₹{item.price}</span>}
+          <span className="menu-item-card__order">Order →</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Booking Modal ── */
 function BookingModal({ restaurant, onClose }) {
   const [form, setForm] = useState({ date: "", time: "", guests: 2, note: "" });
   const [done, setDone] = useState(false);
@@ -104,13 +180,13 @@ function BookingModal({ restaurant, onClose }) {
           <div className="modal__done">
             <span>🎉</span>
             <h3>Table Reserved!</h3>
-            <p>We'll confirm your booking at <strong>{restaurant.name}</strong> shortly.</p>
+            <p>We'll confirm your booking at <strong>{restaurant.restaurantName}</strong> shortly.</p>
             <button className="btn-primary" onClick={onClose}>Done</button>
           </div>
         ) : (
           <>
             <div className="modal__head">
-              <h3>Reserve at {restaurant.name}</h3>
+              <h3>Reserve at {restaurant.restaurantName}</h3>
               <button className="modal__close" onClick={onClose}>✕</button>
             </div>
             <div className="modal__fields">
@@ -144,9 +220,13 @@ function BookingModal({ restaurant, onClose }) {
   );
 }
 
+/* ══════════════════════════════════════
+   MAIN HOME PAGE
+══════════════════════════════════════ */
 export default function Home() {
   const [restaurants, setRestaurants] = useState([]);
   const [filtered, setFiltered]       = useState([]);
+  const [menuItems, setMenuItems]     = useState([]);
   const [loading, setLoading]         = useState(true);
   const [search, setSearch]           = useState("");
   const [activeCategory, setActiveCat] = useState("");
@@ -155,10 +235,10 @@ export default function Home() {
 
   useEffect(() => {
     setTimeout(() => setMounted(true), 50);
-    fetchRestaurants();
+    fetchData();
   }, []);
 
-  const fetchRestaurants = async () => {
+  const fetchData = async () => {
     try {
       const { data } = await axios.get(
         "http://localhost:5000/api/merchant/approved-restaurants"
@@ -166,16 +246,38 @@ export default function Home() {
       const list = data.restaurants || [];
       setRestaurants(list);
       setFiltered(list);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
+
+      // Build recommended menu items from all restaurants
+      // Each restaurant's foodItems/menuItems array (adjust field name to match your backend)
+      const items = [];
+      list.forEach(r => {
+        const foods = r.foodItems || r.menuItems || r.menu || [];
+        foods.slice(0, 3).forEach(item => {
+          items.push({
+            ...item,
+            restaurantId: r._id,
+            restaurantName: r.restaurantName,
+          });
+        });
+      });
+      // Shuffle for variety
+      setMenuItems(items.sort(() => Math.random() - 0.5).slice(0, 12));
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Derive categories dynamically from restaurant cuisineType arrays
+  // Derive unique categories from restaurantType field
   const categories = [
     ...new Set(
-      restaurants.flatMap(r => r.cuisineType || r.cuisine || [])
+      restaurants
+        .map(r => r.restaurantType)
+        .filter(Boolean)
+        .map(t => t.toString().trim())
     )
-  ].filter(Boolean).slice(0, 12);
+  ].slice(0, 14);
 
   const handleSearch = (q) => { setSearch(q); applyFilter(q, activeCategory); };
 
@@ -188,18 +290,12 @@ export default function Home() {
   const applyFilter = (q, cat) => {
     let list = restaurants;
     if (q) list = list.filter(r =>
-      r.name?.toLowerCase().includes(q.toLowerCase()) ||
-      (r.cuisineType || r.cuisine || []).some(c =>
-        c.toLowerCase().includes(q.toLowerCase())
-      )
+      r.restaurantName?.toLowerCase().includes(q.toLowerCase()) ||
+      r.restaurantType?.toLowerCase().includes(q.toLowerCase()) ||
+      r.restaurantAddress?.toLowerCase().includes(q.toLowerCase())
     );
     if (cat) list = list.filter(r =>
-      (r.cuisineType || r.cuisine || []).some(c =>
-        c.toLowerCase().includes(cat.toLowerCase())
-      ) ||
-      (r.menuItems || r.menu || []).some(m =>
-        m.name?.toLowerCase().includes(cat.toLowerCase())
-      )
+      r.restaurantType?.toLowerCase().includes(cat.toLowerCase())
     );
     setFiltered(list);
   };
@@ -208,7 +304,7 @@ export default function Home() {
     <div className={`home ${mounted ? "home--in" : ""}`}>
       <Header />
 
-      {/* HERO */}
+      {/* ── HERO ── */}
       <section className="hero">
         <div className="floating-foods" aria-hidden="true">
           {["🍕","🍣","🍔","🌮","🥗","🍜","🧁","🍛"].map((e, i) => (
@@ -218,8 +314,10 @@ export default function Home() {
         <div className="hero__content">
           <div className="hero__text">
             <div className="hero__badge">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-              The #1 food & dining platform
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+              The #1 food &amp; dining platform
             </div>
             <h1>
               Great food,<br />
@@ -235,7 +333,9 @@ export default function Home() {
                 value={search}
                 onChange={e => handleSearch(e.target.value)}
               />
-              {search && <button className="hero__search-clear" onClick={() => handleSearch("")}>✕</button>}
+              {search && (
+                <button className="hero__search-clear" onClick={() => handleSearch("")}>✕</button>
+              )}
             </div>
           </div>
           <div className="hero__stats">
@@ -249,7 +349,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CATEGORIES — derived from real restaurant data */}
+      {/* ── CATEGORIES ── */}
       {categories.length > 0 && (
         <section className="section">
           <h2 className="section__title">What are you craving?</h2>
@@ -267,7 +367,7 @@ export default function Home() {
         </section>
       )}
 
-      {/* RESTAURANTS */}
+      {/* ── RESTAURANTS ── */}
       <section className="section">
         <div className="section__head">
           <h2 className="section__title">
@@ -297,7 +397,24 @@ export default function Home() {
         )}
       </section>
 
-      {/* FOOTER */}
+      {/* ── RECOMMENDED MENU ITEMS ── */}
+      {menuItems.length > 0 && (
+        <section className="section section--dark-bg">
+          <div className="section__head">
+            <div>
+              <h2 className="section__title">Recommended for you</h2>
+              <p className="section__sub">Hand-picked dishes from top restaurants</p>
+            </div>
+          </div>
+          <div className="menu-scroll">
+            {menuItems.map((item, i) => (
+              <MenuItemCard key={i} item={item} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── FOOTER ── */}
       <footer className="address-strip">
         <div className="address-strip__inner">
           <span className="address-strip__logo">OmniRetail</span>
@@ -313,7 +430,9 @@ export default function Home() {
         </div>
       </footer>
 
-      {booking && <BookingModal restaurant={booking} onClose={() => setBooking(null)} />}
+      {booking && (
+        <BookingModal restaurant={booking} onClose={() => setBooking(null)} />
+      )}
     </div>
   );
 }
