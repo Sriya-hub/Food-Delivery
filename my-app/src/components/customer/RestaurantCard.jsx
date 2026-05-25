@@ -32,7 +32,13 @@ export default function RestaurantCard({ restaurant: r }) {
       {/* Image */}
       <div className="rc__img">
         <img
-          src={r.restaurantImage || r.image || DEFAULT_IMG}
+          src={
+  r.restaurantImage
+    ? r.restaurantImage.startsWith("http")
+      ? r.restaurantImage
+      : `http://localhost:5000/${r.restaurantImage.replace(/^\//, "")}`
+    : DEFAULT_IMG
+}
           alt={r.restaurantName}
           loading="lazy"
         />

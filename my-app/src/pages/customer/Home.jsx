@@ -62,9 +62,15 @@ function RestaurantCard({ r, onBook }) {
       {/* Image */}
       <div className="r-card__img">
         {r.restaurantImage
-          ? <img src={r.restaurantImage} alt={r.restaurantName} loading="lazy" />
-          : <span className="r-card__img-placeholder">🍽</span>
-        }
+  ? <img
+      src={r.restaurantImage.startsWith("http")
+        ? r.restaurantImage
+        : `http://localhost:5000/${r.restaurantImage.replace(/^\//, "")}`}
+      alt={r.restaurantName}
+      loading="lazy"
+    />
+  : <span className="r-card__img-placeholder">🍽</span>
+}
         {open !== null && (
           <span className={`badge ${open ? "badge--open" : "badge--closed"}`}>
             <span className="badge-dot" />

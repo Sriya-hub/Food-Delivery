@@ -128,13 +128,16 @@ export default function RestaurantDetails() {
     finally { setLoading(false); }
   };
 
-  const addToCart = (food) => {
-    let cart = JSON.parse(localStorage.getItem("cart")) || [];
-    const ex = cart.find(i => i._id === food._id);
-    ex ? ex.quantity++ : cart.push({ ...food, quantity: 1 });
-    localStorage.setItem("cart", JSON.stringify(cart));
-    showToast(`"${food.name}" added to cart!`);
-  };
+  // In RestaurantDetails.jsx — update your addToCart function to dispatch the event:
+
+const addToCart = (food) => {
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+  const ex = cart.find(i => i._id === food._id);
+  ex ? ex.quantity++ : cart.push({ ...food, quantity: 1 });
+  localStorage.setItem("cart", JSON.stringify(cart));
+  window.dispatchEvent(new Event("cart-updated")); // ← add this line
+  showToast(`"${food.name}" added to cart!`);
+};
 
   const showToast = (msg) => {
     setToast(msg);

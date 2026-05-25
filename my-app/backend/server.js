@@ -119,6 +119,9 @@ app.use(
   require("./routes/orders.routes")
 );
 
+
+app.use("/api/checkout", require("./routes/checkout.routes"));
+
 /* =========================
    TEST ROUTE
 ========================= */
