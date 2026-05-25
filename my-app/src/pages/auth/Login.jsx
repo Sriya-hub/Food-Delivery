@@ -206,7 +206,7 @@ function Login() {
                   <path d="M16 14l4-4 4 4" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <span className="brand__name">OmniRetail</span>
+              <span className="brand__name">Foodie</span>
             </div>
 
             <div className="hero-text">
@@ -360,7 +360,7 @@ function Login() {
 
             {/* SIGNUP */}
             <p className="signup-prompt">
-              New to OmniRetail?{" "}
+              New to Foodie?{" "}
               <Link to="/signup">Create a free account →</Link>
             </p>
 
