@@ -1,14 +1,20 @@
 import "./Login.css";
 
-import { Link, useNavigate } from "react-router-dom";
+import {
+  Link,
+  useNavigate
+} from "react-router-dom";
 
-import { useState } from "react";
+import {
+  useState
+} from "react";
 
 import axios from "axios";
 
 function Login() {
 
-  const navigate = useNavigate();
+  const navigate =
+    useNavigate();
 
   /* =========================
      STATES
@@ -19,6 +25,9 @@ function Login() {
 
   const [password, setPassword] =
     useState("");
+
+  const [loading, setLoading] =
+    useState(false);
 
   /* =========================
      HANDLE LOGIN
@@ -43,6 +52,8 @@ function Login() {
 
       try {
 
+        setLoading(true);
+
         const response =
           await axios.post(
 
@@ -50,11 +61,13 @@ function Login() {
 
             {
               email,
-              password,
+              password
             }
           );
 
-        /* RESPONSE DATA */
+        /* =========================
+           RESPONSE DATA
+        ========================= */
 
         const user =
           response.data.user;
@@ -62,7 +75,9 @@ function Login() {
         const token =
           response.data.token;
 
-        /* STORE TOKEN */
+        /* =========================
+           STORE AUTH DATA
+        ========================= */
 
         localStorage.setItem(
           "token",
@@ -74,12 +89,46 @@ function Login() {
           JSON.stringify(user)
         );
 
+        /* =========================
+           SAVE USER ID
+        ========================= */
+
+        localStorage.setItem(
+          "userId",
+          user._id
+        );
+
+        /* =========================
+           SAVE ROLE
+        ========================= */
+
+        localStorage.setItem(
+          "role",
+          user.role
+        );
+
+        /* =========================
+           SAVE MERCHANT ID
+        ========================= */
+
+        if (
+          user.role === "merchant"
+        ) {
+
+          localStorage.setItem(
+
+            "merchantId",
+
+            user._id
+          );
+        }
+
         alert(
           "Login Successful"
         );
 
         /* =========================
-           ROLE-BASED REDIRECTION
+           ROLE BASED NAVIGATION
         ========================= */
 
         /* CUSTOMER */
@@ -130,7 +179,7 @@ function Login() {
             );
           }
 
-          /* WAITING FOR APPROVAL */
+          /* WAITING APPROVAL */
 
           else if (
             !user.isApproved
@@ -155,10 +204,15 @@ function Login() {
 
         console.log(error);
 
-        if (error.response) {
+        if (
+          error.response
+        ) {
 
           alert(
-            error.response.data.message
+
+            error.response
+              .data
+              .message
           );
 
         } else {
@@ -167,13 +221,20 @@ function Login() {
             "Server Error"
           );
         }
+
+      } finally {
+
+        setLoading(false);
       }
     };
 
   return (
+
     <div className="login-page">
 
-      {/* LEFT SIDE */}
+      {/* =========================
+          LEFT SIDE
+      ========================= */}
 
       <div className="login-left">
 
@@ -192,28 +253,37 @@ function Login() {
 
       </div>
 
-      {/* RIGHT SIDE */}
+      {/* =========================
+          RIGHT SIDE
+      ========================= */}
 
       <div className="login-right">
 
         <div className="login-box">
 
-          <h1>Login</h1>
+          <h1>
+            Login
+          </h1>
 
           <p className="login-subtitle">
+
             Access your account
+
           </p>
 
           {/* EMAIL */}
 
           <input
             type="email"
+
             placeholder="Enter Email"
 
             value={email}
 
             onChange={(e) =>
-              setEmail(e.target.value)
+              setEmail(
+                e.target.value
+              )
             }
           />
 
@@ -221,23 +291,35 @@ function Login() {
 
           <input
             type="password"
+
             placeholder="Enter Password"
 
             value={password}
 
             onChange={(e) =>
-              setPassword(e.target.value)
+              setPassword(
+                e.target.value
+              )
             }
           />
 
           {/* LOGIN BUTTON */}
 
           <button
+
             className="login-submit-btn"
 
             onClick={handleLogin}
+
+            disabled={loading}
           >
-            Login
+
+            {
+              loading
+              ? "Logging In..."
+              : "Login"
+            }
+
           </button>
 
           {/* SIGNUP LINK */}
@@ -247,7 +329,9 @@ function Login() {
             Don't have an account?
 
             <Link to="/signup">
+
               {" "}Signup
+
             </Link>
 
           </p>

@@ -1,19 +1,139 @@
 .home {
+
   width: 100%;
+
   min-height: 100vh;
 
   background-color: #f8f9fb;
 }
 
-/* RESTAURANT SECTION */
+/* =========================
+   RESTAURANT SECTION
+========================= */
 
 .restaurant-section {
+
+  width: 100%;
+
+  max-width: 1300px;
+
+  margin: auto;
+
+  padding: 50px 30px;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.restaurant-header {
+
+  margin-bottom: 35px;
+}
+
+.restaurant-header h2 {
+
+  font-size: 38px;
+
+  font-weight: 700;
+
+  color: #222;
+
+  margin-bottom: 10px;
+}
+
+.restaurant-header p {
+
+  font-size: 16px;
+
+  color: #666;
+}
+
+/* =========================
+   GRID
+========================= */
+
+.restaurant-grid {
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(auto-fit, minmax(320px, 1fr));
+
+  gap: 28px;
+}
+
+/* =========================
+   LOADING
+========================= */
+
+.loading-restaurants {
+
+  width: 100%;
+
+  padding: 60px 20px;
+
   display: flex;
+
   justify-content: center;
+
   align-items: center;
-  flex-wrap: wrap;
+}
 
-  gap: 30px;
+.loading-restaurants h3 {
 
-  padding: 50px;
+  font-size: 24px;
+
+  color: #555;
+}
+
+/* =========================
+   EMPTY STATE
+========================= */
+
+.empty-restaurants {
+
+  width: 100%;
+
+  padding: 60px 20px;
+
+  text-align: center;
+}
+
+.empty-restaurants h3 {
+
+  font-size: 28px;
+
+  margin-bottom: 10px;
+
+  color: #222;
+}
+
+.empty-restaurants p {
+
+  color: #666;
+
+  font-size: 16px;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media screen and (max-width: 768px) {
+
+  .restaurant-section {
+
+    padding: 30px 20px;
+  }
+
+  .restaurant-header h2 {
+
+    font-size: 30px;
+  }
+
+  .restaurant-grid {
+
+    grid-template-columns: 1fr;
+  }
 }

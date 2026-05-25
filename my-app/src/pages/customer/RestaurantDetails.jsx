@@ -1,71 +1,171 @@
-import "./RestaurantDetails.css";
+import {
 
-import Header from "../../components/customer/Header";
-import FoodItem from "../../components/customer/FoodItem";
+  useEffect,
+  useState
+
+} from "react";
+
+import {
+
+  useParams
+
+} from "react-router-dom";
+
+import axios
+from "axios";
 
 function RestaurantDetails() {
 
-  const foods = [
-    {
-      id: 1,
-      name: "Chicken Burger",
-      description: "Crispy chicken burger with cheese",
-      price: 199,
-      image:
-        "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
-    },
+  /* =========================
+     GET PARAM
+  ========================= */
 
-    {
-      id: 2,
-      name: "French Fries",
-      description: "Hot crispy potato fries",
-      price: 99,
-      image:
-        "https://images.unsplash.com/photo-1576107232684-1279f390859f",
-    },
+  const params =
+    useParams();
 
-    {
-      id: 3,
-      name: "Cold Coffee",
-      description: "Refreshing chilled coffee",
-      price: 149,
-      image:
-        "https://images.unsplash.com/photo-1517701604599-bb29b565090c",
-    },
-  ];
+  const merchantId =
+    params.id;
+
+  console.log(
+    "Merchant ID:",
+    merchantId
+  );
+
+  /* =========================
+     STATES
+  ========================= */
+
+  const [foods, setFoods] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  /* =========================
+     FETCH FOODS
+  ========================= */
+
+  useEffect(() => {
+
+    if (merchantId) {
+
+      fetchFoods();
+    }
+
+  }, [merchantId]);
+
+  const fetchFoods =
+    async () => {
+
+      try {
+
+        const response =
+          await axios.get(
+
+            `http://localhost:5000/api/food/foods/${merchantId}`
+          );
+
+        console.log(
+          response.data
+        );
+
+        setFoods(
+          response.data.foods
+        );
+
+      } catch (error) {
+
+        console.log(
+          "Food Fetch Error:",
+          error
+        );
+
+      } finally {
+
+        setLoading(false);
+      }
+    };
 
   return (
-    <div className="restaurant-details-page">
 
-      <Header />
+    <div
+      style={{
+        padding: "40px"
+      }}
+    >
 
-      <div className="restaurant-content">
+      <h1>
+        Restaurant Foods
+      </h1>
 
-        <div className="restaurant-banner">
+      {
 
-          <h1>Burger House</h1>
+        loading ? (
 
-          <p>⭐ 4.5 • 25 mins • Fast Food</p>
+          <h2>
+            Loading...
+          </h2>
 
-        </div>
+        ) : foods.length === 0 ? (
 
-        <div className="menu-section">
+          <h2>
+            No Foods Available
+          </h2>
 
-          <h2>Popular Items</h2>
+        ) : (
 
-          {foods.map((food) => (
-            <FoodItem
-              key={food.id}
-              name={food.name}
-              description={food.description}
-              price={food.price}
-              image={food.image}
-            />
-          ))}
+          foods.map((food) => (
 
-        </div>
+            <div
 
-      </div>
+              key={food._id}
+
+              style={{
+                background: "white",
+                padding: "20px",
+                marginBottom: "20px",
+                borderRadius: "12px"
+              }}
+            >
+
+              <img
+
+                src={
+                  food.image
+
+                  ? `http://localhost:5000${food.image}`
+
+                  : "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1200&auto=format&fit=crop"
+                }
+
+                alt={food.name}
+
+                style={{
+                  width: "300px",
+                  borderRadius: "10px"
+                }}
+              />
+
+              <h2>
+                {food.name}
+              </h2>
+
+              <p>
+                {food.category}
+              </p>
+
+              <p>
+                {food.description}
+              </p>
+
+              <h3>
+                ₹ {food.price}
+              </h3>
+
+            </div>
+          ))
+        )
+      }
 
     </div>
   );

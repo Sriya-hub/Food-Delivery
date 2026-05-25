@@ -33,6 +33,9 @@ function MerchantRegistration() {
   const [restaurantImage, setRestaurantImage] =
     useState(null);
 
+  const [loading, setLoading] =
+    useState(false);
+
   /* =========================
      HANDLE SUBMIT
   ========================= */
@@ -59,6 +62,8 @@ function MerchantRegistration() {
 
     try {
 
+      setLoading(true);
+
       /* GET USER */
 
       const user =
@@ -66,38 +71,70 @@ function MerchantRegistration() {
           localStorage.getItem("user")
         );
 
-      /* UPDATE USER */
+      if (!user) {
 
-      user.restaurantName =
-        restaurantName;
+        alert(
+          "Please login first"
+        );
 
-      user.phoneNumber =
-        phoneNumber;
+        navigate("/login");
 
-      user.restaurantAddress =
-        restaurantAddress;
+        return;
+      }
 
-      user.restaurantType =
-        restaurantType;
+      /* API CALL */
 
-      user.openingTime =
-        openingTime;
+      const response =
+        await fetch(
 
-      user.closingTime =
-        closingTime;
+          `http://localhost:5000/api/merchant/register/${user._id}`,
 
-      user.registrationCompleted =
-        true;
+          {
+            method: "PUT",
 
-      user.isApproved =
-        false;
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
-      /* SAVE UPDATED USER */
+            body: JSON.stringify({
+
+              restaurantName,
+
+              phoneNumber,
+
+              restaurantAddress,
+
+              restaurantType,
+
+              openingTime,
+
+              closingTime,
+            }),
+          }
+        );
+
+      const data =
+        await response.json();
+
+      /* ERROR */
+
+      if (!response.ok) {
+
+        alert(
+          data.message
+        );
+
+        return;
+      }
+
+      /* UPDATE LOCAL STORAGE */
 
       localStorage.setItem(
+
         "user",
 
-        JSON.stringify(user)
+        JSON.stringify(data.user)
       );
 
       /* SUCCESS */
@@ -119,10 +156,15 @@ function MerchantRegistration() {
       alert(
         "Something went wrong"
       );
+
+    } finally {
+
+      setLoading(false);
     }
   };
 
   return (
+
     <div className="merchant-page">
 
       {/* LEFT SIDE */}
@@ -308,7 +350,13 @@ function MerchantRegistration() {
 
             onClick={handleSubmit}
           >
-            Submit Registration
+
+            {
+              loading
+              ? "Submitting..."
+              : "Submit Registration"
+            }
+
           </button>
 
         </div>

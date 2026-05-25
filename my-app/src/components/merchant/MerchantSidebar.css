@@ -1,0 +1,31 @@
+.merchant-sidebar{
+  width:260px;
+  background:#111827;
+  color:white;
+  padding:25px;
+}
+
+.merchant-sidebar h2{
+  margin-bottom:40px;
+}
+
+.merchant-sidebar ul{
+  list-style:none;
+  padding:0;
+}
+
+.merchant-sidebar li{
+  padding:14px;
+  margin-bottom:10px;
+  border-radius:10px;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.merchant-sidebar li:hover{
+  background:#1f2937;
+}
+
+.merchant-sidebar li.active{
+  background:#2563eb;
+}

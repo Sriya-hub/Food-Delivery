@@ -122,18 +122,34 @@ router.get(
           registrationCompleted: true,
 
           isApproved: true
+        })
+
+        .select(
+
+          "_id restaurantName restaurantType restaurantAddress openingTime closingTime phoneNumber"
+        )
+
+        .sort({
+
+          createdAt: -1
         });
 
       res.status(200).json({
 
         success: true,
 
+        totalRestaurants:
+          restaurants.length,
+
         restaurants
       });
 
     } catch (error) {
 
-      console.log(error);
+      console.log(
+        "Approved Restaurant Error:",
+        error
+      );
 
       res.status(500).json({
 
@@ -161,6 +177,11 @@ router.get(
       const user =
         await User.findById(
           req.params.id
+        )
+
+        .select(
+
+          "_id restaurantName restaurantType restaurantAddress openingTime closingTime phoneNumber isApproved"
         );
 
       /* USER NOT FOUND */

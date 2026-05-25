@@ -1,86 +1,67 @@
+import { useState } from "react";
+
 import "./MerchantDashboard.css";
 
+import MerchantSidebar
+from "../../components/merchant/MerchantSidebar";
+
+import MerchantTopbar
+from "../../components/merchant/MerchantTopbar";
+
+import MerchantFoods
+from "./MerchantFoods";
+
+import MerchantOrders
+from "./MerchantOrders";
+
+import MerchantAnalytics
+from "./MerchantAnalytics";
+
+import MerchantSettings
+from "./MerchantSettings";
+
 function MerchantDashboard() {
+
+  const [activeTab, setActiveTab] =
+    useState("foods");
+
+  const renderContent = () => {
+
+    switch (activeTab) {
+
+      case "foods":
+        return <MerchantFoods />;
+
+      case "orders":
+        return <MerchantOrders />;
+
+      case "analytics":
+        return <MerchantAnalytics />;
+
+      case "settings":
+        return <MerchantSettings />;
+
+      default:
+        return <MerchantFoods />;
+    }
+  };
 
   return (
 
     <div className="merchant-dashboard">
 
-      <div className="dashboard-sidebar">
+      <MerchantSidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
 
-        <h2>
-          OmniRetail
-        </h2>
+      <div className="merchant-main">
 
-        <ul>
+        <MerchantTopbar />
 
-          <li>
-            Dashboard
-          </li>
+        <div className="merchant-content">
 
-          <li>
-            Orders
-          </li>
-
-          <li>
-            Menu
-          </li>
-
-          <li>
-            Analytics
-          </li>
-
-          <li>
-            Settings
-          </li>
-
-        </ul>
-
-      </div>
-
-      <div className="dashboard-content">
-
-        <h1>
-          Merchant Dashboard
-        </h1>
-
-        <div className="stats-grid">
-
-          <div className="stat-card">
-
-            <h2>
-              ₹ 12,500
-            </h2>
-
-            <p>
-              Today's Revenue
-            </p>
-
-          </div>
-
-          <div className="stat-card">
-
-            <h2>
-              124
-            </h2>
-
-            <p>
-              Orders
-            </p>
-
-          </div>
-
-          <div className="stat-card">
-
-            <h2>
-              4.8 ⭐
-            </h2>
-
-            <p>
-              Ratings
-            </p>
-
-          </div>
+          {renderContent()}
 
         </div>
 

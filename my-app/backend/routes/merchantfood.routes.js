@@ -35,15 +35,16 @@ const storage =
     ) {
 
       cb(
+
         null,
 
         Date.now() +
+
         path.extname(
           file.originalname
         )
       );
     }
-
   });
 
 const upload =
@@ -96,7 +97,9 @@ router.post(
 
           image:
             req.file
+
             ? `/uploads/${req.file.filename}`
+
             : ""
         });
 
@@ -107,14 +110,17 @@ router.post(
         success: true,
 
         message:
-          "Food added successfully",
+          "Food Added Successfully",
 
         food: newFood
       });
 
     } catch (error) {
 
-      console.log(error);
+      console.log(
+        "Add Food Error:",
+        error
+      );
 
       res.status(500).json({
 
@@ -128,7 +134,7 @@ router.post(
 );
 
 /* =========================
-   GET ALL FOODS
+   GET RESTAURANT FOODS
 ========================= */
 
 router.get(
@@ -139,26 +145,52 @@ router.get(
 
     try {
 
+      const { merchantId } =
+        req.params;
+
+      console.log(
+        "Merchant ID:",
+        merchantId
+      );
+
+      if (!merchantId) {
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            "Merchant ID Required"
+        });
+      }
+
       const foods =
         await Food.find({
 
-          merchantId:
-            req.params.merchantId
+          merchantId
+        })
 
-        }).sort({
+        .sort({
+
           createdAt: -1
         });
 
-      res.json({
+      res.status(200).json({
 
         success: true,
+
+        totalFoods:
+          foods.length,
 
         foods
       });
 
     } catch (error) {
 
-      console.log(error);
+      console.log(
+        "Get Foods Error:",
+        error
+      );
 
       res.status(500).json({
 
@@ -184,20 +216,24 @@ router.delete(
     try {
 
       await Food.findByIdAndDelete(
+
         req.params.id
       );
 
-      res.json({
+      res.status(200).json({
 
         success: true,
 
         message:
-          "Food deleted"
+          "Food Deleted Successfully"
       });
 
     } catch (error) {
 
-      console.log(error);
+      console.log(
+        "Delete Food Error:",
+        error
+      );
 
       res.status(500).json({
 
