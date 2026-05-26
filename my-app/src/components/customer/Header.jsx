@@ -114,6 +114,28 @@ function CartIcon() {
   );
 }
 
+/* ── Marquee Banner (center) ── */
+const MARQUEE_ITEMS = [
+  "🍕 Free delivery on orders above ₹299",
+  "🎉 New restaurants added every week",
+  "⚡ Lightning-fast delivery in 30 mins",
+  "🍔 Exclusive deals — up to 40% off today",
+  "🌮 Order now & earn loyalty points",
+  "🍣 Premium picks from top-rated chefs",
+];
+
+function CenterMarquee() {
+  const text = MARQUEE_ITEMS.join("   •   ");
+  return (
+    <div className="header__marquee" aria-label="Promotions ticker">
+      <div className="header__marquee-track">
+        <span aria-hidden="true">{text}&nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;</span>
+        <span aria-hidden="true">{text}&nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;</span>
+      </div>
+    </div>
+  );
+}
+
 /* ── Header ── */
 export default function Header() {
   const navigate = useNavigate();
@@ -155,7 +177,7 @@ export default function Header() {
     <>
       <header className="header">
 
-        {/* ── Brand ── */}
+        {/* ── Brand (static, no marquee) ── */}
         <div className="header__brand" onClick={() => navigate("/")}>
           <span className="header__logo">🍽</span>
           <span className="header__name">Foodie</span>
@@ -172,6 +194,9 @@ export default function Header() {
             <path d="M6 9l6 6 6-6" strokeLinecap="round"/>
           </svg>
         </button>
+
+        {/* ── CENTER: Scrolling marquee ticker ── */}
+        <CenterMarquee />
 
         {/* ── Right ── */}
         <div className="header__right">
