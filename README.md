@@ -1,2 +1,1 @@
-# OmniRetail
-POS System
+#Foodie
