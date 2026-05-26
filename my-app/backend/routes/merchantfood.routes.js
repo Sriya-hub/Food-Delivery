@@ -53,6 +53,17 @@ router.put("/update-food/:id", upload.single("image"), async (req, res) => {
   }
 });
 
+/* ── GET ALL AVAILABLE FOODS (for Home page) ── */
+router.get("/all-foods", async (req, res) => {
+  try {
+    const foods = await Food.find({ available: true }).sort({ createdAt: -1 });
+    res.status(200).json({ success: true, totalFoods: foods.length, foods });
+  } catch (error) {
+    console.error("Get All Foods Error:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+});
+
 /* ── GET FOODS BY MERCHANT ── */
 router.get("/foods/:merchantId", async (req, res) => {
   try {

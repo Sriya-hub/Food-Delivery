@@ -19,6 +19,7 @@ const CAT_EMOJI = {
   seafood: "🦞", vegan: "🌱", sandwich: "🥪", coffee: "☕",
   biryani: "🍛", south: "🥘", north: "🍲", street: "🌯",
   snacks: "🍟", juice: "🥤", sweets: "🍮", rolls: "🌯",
+  both: "🍽", veg: "🥦",
   default: "🍽",
 };
 const getEmoji = (label = "") =>
@@ -51,6 +52,20 @@ function StarRating({ rating = 0 }) {
   );
 }
 
+/* ── Cart Toast ── */
+function CartToast({ item, onClose }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 2500);
+    return () => clearTimeout(t);
+  }, [onClose]);
+  return (
+    <div className="cart-toast">
+      <span>🛒</span>
+      <span><strong>{item.name}</strong> added to cart!</span>
+    </div>
+  );
+}
+
 /* ── Restaurant Card ── */
 function RestaurantCard({ r, onBook }) {
   const navigate = useNavigate();
@@ -59,18 +74,17 @@ function RestaurantCard({ r, onBook }) {
 
   return (
     <div className="r-card" onClick={() => navigate(`/restaurant/${r._id}`)}>
-      {/* Image */}
       <div className="r-card__img">
         {r.restaurantImage
-  ? <img
-      src={r.restaurantImage.startsWith("http")
-        ? r.restaurantImage
-        : `http://localhost:5000/${r.restaurantImage.replace(/^\//, "")}`}
-      alt={r.restaurantName}
-      loading="lazy"
-    />
-  : <span className="r-card__img-placeholder">🍽</span>
-}
+          ? <img
+              src={r.restaurantImage.startsWith("http")
+                ? r.restaurantImage
+                : `http://localhost:5000/${r.restaurantImage.replace(/^\//, "")}`}
+              alt={r.restaurantName}
+              loading="lazy"
+            />
+          : <span className="r-card__img-placeholder">🍽</span>
+        }
         {open !== null && (
           <span className={`badge ${open ? "badge--open" : "badge--closed"}`}>
             <span className="badge-dot" />
@@ -79,22 +93,18 @@ function RestaurantCard({ r, onBook }) {
         )}
       </div>
 
-      {/* Body */}
       <div className="r-card__body">
-        {/* Name — hero */}
         <div className="r-card__top">
           <h3 className="r-card__name">{r.restaurantName}</h3>
           <StarRating rating={r.rating || 4.2} />
         </div>
 
-        {/* Cuisine */}
         {cuisine && (
           <p className="r-card__cuisines">
             {getEmoji(cuisine)} {cuisine}
           </p>
         )}
 
-        {/* Hours block */}
         <div className="r-card__hours">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="12" cy="12" r="10" />
@@ -108,7 +118,6 @@ function RestaurantCard({ r, onBook }) {
           </div>
         </div>
 
-        {/* Address */}
         <p className="r-card__address">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
@@ -117,7 +126,6 @@ function RestaurantCard({ r, onBook }) {
           {r.restaurantAddress}
         </p>
 
-        {/* Footer */}
         <div className="r-card__footer">
           <span className="r-card__delivery">Free delivery</span>
           <button
@@ -132,9 +140,78 @@ function RestaurantCard({ r, onBook }) {
   );
 }
 
-/* ── Recommended Menu Item Card ── */
-function MenuItemCard({ item }) {
+/* ── Food Item Card (shown under Top Restaurants) ── */
+function FoodItemCard({ item, onAddToCart }) {
   const navigate = useNavigate();
+  const [adding, setAdding] = useState(false);
+
+  const handleCart = (e) => {
+    e.stopPropagation();
+    setAdding(true);
+    onAddToCart(item);
+    setTimeout(() => setAdding(false), 600);
+  };
+
+  const imgSrc = item.image
+    ? item.image.startsWith("http")
+      ? item.image
+      : `http://localhost:5000/${item.image.replace(/^\//, "")}`
+    : null;
+
+  return (
+    <div
+      className="food-card"
+      onClick={() => navigate(`/restaurant/${item.restaurantId}`)}
+    >
+      <div className="food-card__img">
+        {imgSrc
+          ? <img src={imgSrc} alt={item.name} loading="lazy" />
+          : <span className="food-card__placeholder">{getEmoji(item.category || "")}</span>
+        }
+        {item.category && (
+          <span className="food-card__cat-badge">{item.category}</span>
+        )}
+      </div>
+
+      <div className="food-card__body">
+        <p className="food-card__name">{item.name}</p>
+        {item.description && (
+          <p className="food-card__desc">{item.description}</p>
+        )}
+        <p className="food-card__restaurant">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12">
+            <path d="M3 11l19-9-9 19-2-8-8-2z" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {item.restaurantName}
+        </p>
+        <div className="food-card__footer">
+          <span className="food-card__price">
+            {item.price ? `₹${item.price}` : "—"}
+          </span>
+          <button
+            className={`btn-cart ${adding ? "btn-cart--added" : ""}`}
+            onClick={handleCart}
+          >
+            {adding ? "✓ Added" : "+ Add"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Recommended Menu Item Card (horizontal scroll) ── */
+function MenuItemCard({ item, onAddToCart }) {
+  const navigate = useNavigate();
+  const [adding, setAdding] = useState(false);
+
+  const handleCart = (e) => {
+    e.stopPropagation();
+    setAdding(true);
+    onAddToCart(item);
+    setTimeout(() => setAdding(false), 600);
+  };
+
   return (
     <div
       className="menu-item-card"
@@ -142,7 +219,11 @@ function MenuItemCard({ item }) {
     >
       <div className="menu-item-card__img">
         {item.image
-          ? <img src={item.image} alt={item.name} loading="lazy" />
+          ? <img
+              src={item.image.startsWith("http") ? item.image : `http://localhost:5000/${item.image.replace(/^\//, "")}`}
+              alt={item.name}
+              loading="lazy"
+            />
           : <span className="menu-item-card__placeholder">{getEmoji(item.category || "")}</span>
         }
       </div>
@@ -151,7 +232,12 @@ function MenuItemCard({ item }) {
         <p className="menu-item-card__restaurant">{item.restaurantName}</p>
         <div className="menu-item-card__footer">
           {item.price && <span className="menu-item-card__price">₹{item.price}</span>}
-          <span className="menu-item-card__order">Order →</span>
+          <button
+            className={`btn-cart btn-cart--sm ${adding ? "btn-cart--added" : ""}`}
+            onClick={handleCart}
+          >
+            {adding ? "✓" : "+ Add"}
+          </button>
         </div>
       </div>
     </div>
@@ -230,22 +316,45 @@ function BookingModal({ restaurant, onClose }) {
    MAIN HOME PAGE
 ══════════════════════════════════════ */
 export default function Home() {
-  const [restaurants, setRestaurants] = useState([]);
-  const [filtered, setFiltered]       = useState([]);
-  const [menuItems, setMenuItems]     = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [search, setSearch]           = useState("");
-  const [activeCategory, setActiveCat] = useState("");
-  const [booking, setBooking]         = useState(null);
-  const [mounted, setMounted]         = useState(false);
+  const [restaurants, setRestaurants]   = useState([]);
+  const [filtered, setFiltered]         = useState([]);
+  const [foodItems, setFoodItems]       = useState([]);   // ← all food items for grid
+  const [menuItems, setMenuItems]       = useState([]);   // ← recommended horizontal scroll
+  const [loading, setLoading]           = useState(true);
+  const [foodLoading, setFoodLoading]   = useState(true);
+  const [search, setSearch]             = useState("");
+  const [activeCategory, setActiveCat]  = useState("");
+  const [booking, setBooking]           = useState(null);
+  const [mounted, setMounted]           = useState(false);
+  const [cart, setCart]                 = useState(() => {
+    try { return JSON.parse(localStorage.getItem("cart") || "[]"); } catch { return []; }
+  });
+  const [toast, setToast]               = useState(null);
 
   useEffect(() => {
     setTimeout(() => setMounted(true), 50);
     fetchData();
   }, []);
 
+  // Persist cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
+
+  const addToCart = (item) => {
+    setCart(prev => {
+      const existing = prev.find(c => c._id === item._id);
+      if (existing) {
+        return prev.map(c => c._id === item._id ? { ...c, qty: c.qty + 1 } : c);
+      }
+      return [...prev, { ...item, qty: 1 }];
+    });
+    setToast(item);
+  };
+
   const fetchData = async () => {
     try {
+      // Fetch restaurants
       const { data } = await axios.get(
         "http://localhost:5000/api/merchant/approved-restaurants"
       );
@@ -253,21 +362,53 @@ export default function Home() {
       setRestaurants(list);
       setFiltered(list);
 
-      // Build recommended menu items from all restaurants
-      // Each restaurant's foodItems/menuItems array (adjust field name to match your backend)
-      const items = [];
+      // Build merchantId → restaurant map
+      const merchantMap = {};
       list.forEach(r => {
-        const foods = r.foodItems || r.menuItems || r.menu || [];
-        foods.slice(0, 3).forEach(item => {
-          items.push({
-            ...item,
-            restaurantId: r._id,
-            restaurantName: r.restaurantName,
+        // some backends use r.merchantId, others r._id as the owner id
+        merchantMap[r._id] = r.restaurantName;
+        if (r.merchantId) merchantMap[r.merchantId] = r.restaurantName;
+      });
+
+      // Fetch all food items from the dedicated endpoint
+      try {
+        setFoodLoading(true);
+        const foodRes = await axios.get(
+          "http://localhost:5000/api/merchant-food/all-foods"
+        );
+        const foods = (foodRes.data.foods || []).map(f => ({
+          ...f,
+          restaurantName: merchantMap[f.merchantId] || "Unknown restaurant",
+          // Navigate to the restaurant page; use merchantId as restaurantId
+          restaurantId: f.merchantId,
+        }));
+
+        // Show all food items in grid section
+        setFoodItems(foods);
+
+        // Shuffle a subset for "Recommended" horizontal scroll
+        setMenuItems(
+          [...foods].sort(() => Math.random() - 0.5).slice(0, 12)
+        );
+      } catch (foodErr) {
+        console.warn("Could not load food items:", foodErr);
+        // Fallback: try to pull items embedded in restaurant objects
+        const items = [];
+        list.forEach(r => {
+          const foods = r.foodItems || r.menuItems || r.menu || [];
+          foods.slice(0, 3).forEach(item => {
+            items.push({
+              ...item,
+              restaurantId: r._id,
+              restaurantName: r.restaurantName,
+            });
           });
         });
-      });
-      // Shuffle for variety
-      setMenuItems(items.sort(() => Math.random() - 0.5).slice(0, 12));
+        setFoodItems(items);
+        setMenuItems(items.sort(() => Math.random() - 0.5).slice(0, 12));
+      } finally {
+        setFoodLoading(false);
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -306,9 +447,11 @@ export default function Home() {
     setFiltered(list);
   };
 
+  const cartCount = cart.reduce((s, c) => s + c.qty, 0);
+
   return (
     <div className={`home ${mounted ? "home--in" : ""}`}>
-      <Header />
+      <Header cartCount={cartCount} />
 
       {/* ── HERO ── */}
       <section className="hero">
@@ -403,7 +546,38 @@ export default function Home() {
         )}
       </section>
 
-      {/* ── RECOMMENDED MENU ITEMS ── */}
+      {/* ── FOOD ITEMS GRID (below Top Restaurants) ── */}
+      <section className="section">
+        <div className="section__head">
+          <div>
+            <h2 className="section__title">Popular Dishes</h2>
+            <p className="section__sub">Order directly from our top picks</p>
+          </div>
+          {!foodLoading && foodItems.length > 0 && (
+            <span className="section__count">{foodItems.length} items</span>
+          )}
+        </div>
+
+        {foodLoading ? (
+          <div className="food-grid">
+            {[...Array(8)].map((_, i) => <div key={i} className="food-skeleton" />)}
+          </div>
+        ) : foodItems.length === 0 ? (
+          <div className="empty">
+            <span>🍽</span>
+            <h3>No food items found</h3>
+            <p>Check back later for delicious options.</p>
+          </div>
+        ) : (
+          <div className="food-grid">
+            {foodItems.map((item, i) => (
+              <FoodItemCard key={item._id || i} item={item} onAddToCart={addToCart} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ── RECOMMENDED MENU ITEMS (horizontal scroll) ── */}
       {menuItems.length > 0 && (
         <section className="section section--dark-bg">
           <div className="section__head">
@@ -414,7 +588,7 @@ export default function Home() {
           </div>
           <div className="menu-scroll">
             {menuItems.map((item, i) => (
-              <MenuItemCard key={i} item={item} />
+              <MenuItemCard key={i} item={item} onAddToCart={addToCart} />
             ))}
           </div>
         </section>
@@ -438,6 +612,11 @@ export default function Home() {
 
       {booking && (
         <BookingModal restaurant={booking} onClose={() => setBooking(null)} />
+      )}
+
+      {/* ── CART TOAST ── */}
+      {toast && (
+        <CartToast item={toast} onClose={() => setToast(null)} />
       )}
     </div>
   );
