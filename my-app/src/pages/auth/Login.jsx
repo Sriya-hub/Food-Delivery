@@ -122,10 +122,13 @@ function Login() {
       setLoading(true);
       toast.info("Signing you in…", 2500);
 
-      const { data } = await axios.post("http://localhost:5000/api/auth/login", {
-        email,
-        password,
-      });
+      const { data } = await axios.post(
+  `${import.meta.env.VITE_API_URL}/api/auth/login`,
+  {
+    email,
+    password,
+  }
+);
 
       const { user, token } = data;
 
