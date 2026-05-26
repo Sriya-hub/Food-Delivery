@@ -3,7 +3,7 @@ import "./MerchantSidebar.css";
 
 const MENUS = [
   { id: "home",      label: "Home",       icon: "🏠", badge: null },
-  { id: "foods",     label: "Food Items", icon: "🍽", badge: null },
+  { id: "foods",     label: "Food Items", icon: "🍽",  badge: null },
   { id: "orders",    label: "Orders",     icon: "📦", badge: "New" },
   { id: "analytics", label: "Analytics",  icon: "📊", badge: null },
   { id: "settings",  label: "Settings",   icon: "⚙️", badge: null },
@@ -67,16 +67,8 @@ export default function MerchantSidebar({ activeTab, setActiveTab, merchantName 
       {/* DIVIDER */}
       <div className="ms__divider" />
 
-      {/* BOTTOM */}
+      {/* BOTTOM — logout only */}
       <div className="ms__bottom">
-        <button className="ms__item ms__item--ghost" onClick={() => navigate("/")}>
-          <span className="ms__icon">🌐</span>
-          <span className="ms__label">View Storefront</span>
-        </button>
-        <button className="ms__item ms__item--ghost" onClick={() => setActiveTab("settings")}>
-          <span className="ms__icon">⚙️</span>
-          <span className="ms__label">Settings</span>
-        </button>
         <button className="ms__logout" onClick={handleLogout}>
           <span className="ms__icon">🚪</span>
           <span>Logout</span>
