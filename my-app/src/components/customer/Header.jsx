@@ -159,7 +159,7 @@ export default function Header() {
         {/* Brand */}
         <div className="header__brand" onClick={() => navigate("/")}>
           <span className="header__logo">🍽</span>
-          <span className="header__name">OmniRetail</span>
+          <span className="header__name">Foodie</span>
         </div>
 
         {/* Location pill */}
