@@ -141,12 +141,13 @@ function RestaurantCard({ r, onBook }) {
 }
 
 /* ── Food Item Card (shown under Top Restaurants) ── */
-function FoodItemCard({ item, onAddToCart }) {
+function FoodItemCard({ item, onAddToCart, isClosed }) {
   const navigate = useNavigate();
   const [adding, setAdding] = useState(false);
 
   const handleCart = (e) => {
     e.stopPropagation();
+    if (isClosed) return;
     setAdding(true);
     onAddToCart(item);
     setTimeout(() => setAdding(false), 600);
@@ -160,7 +161,7 @@ function FoodItemCard({ item, onAddToCart }) {
 
   return (
     <div
-      className="food-card"
+      className={`food-card${isClosed ? " food-card--closed" : ""}`}
       onClick={() => navigate(`/restaurant/${item.restaurantId}`)}
     >
       <div className="food-card__img">
@@ -171,6 +172,7 @@ function FoodItemCard({ item, onAddToCart }) {
         {item.category && (
           <span className="food-card__cat-badge">{item.category}</span>
         )}
+        {isClosed && <span className="food-card__closed-tag">Closed</span>}
       </div>
 
       <div className="food-card__body">
@@ -189,10 +191,11 @@ function FoodItemCard({ item, onAddToCart }) {
             {item.price ? `₹${item.price}` : "—"}
           </span>
           <button
-            className={`btn-cart ${adding ? "btn-cart--added" : ""}`}
+            className={`btn-cart ${adding ? "btn-cart--added" : ""} ${isClosed ? "btn-cart--disabled" : ""}`}
             onClick={handleCart}
+            disabled={isClosed}
           >
-            {adding ? "✓ Added" : "+ Add"}
+            {isClosed ? "Closed" : adding ? "✓ Added" : "+ Add"}
           </button>
         </div>
       </div>
@@ -201,12 +204,13 @@ function FoodItemCard({ item, onAddToCart }) {
 }
 
 /* ── Recommended Menu Item Card (horizontal scroll) ── */
-function MenuItemCard({ item, onAddToCart }) {
+function MenuItemCard({ item, onAddToCart, isClosed }) {
   const navigate = useNavigate();
   const [adding, setAdding] = useState(false);
 
   const handleCart = (e) => {
     e.stopPropagation();
+    if (isClosed) return;
     setAdding(true);
     onAddToCart(item);
     setTimeout(() => setAdding(false), 600);
@@ -214,7 +218,7 @@ function MenuItemCard({ item, onAddToCart }) {
 
   return (
     <div
-      className="menu-item-card"
+      className={`menu-item-card${isClosed ? " menu-item-card--closed" : ""}`}
       onClick={() => navigate(`/restaurant/${item.restaurantId}`)}
     >
       <div className="menu-item-card__img">
@@ -233,10 +237,11 @@ function MenuItemCard({ item, onAddToCart }) {
         <div className="menu-item-card__footer">
           {item.price && <span className="menu-item-card__price">₹{item.price}</span>}
           <button
-            className={`btn-cart btn-cart--sm ${adding ? "btn-cart--added" : ""}`}
+            className={`btn-cart btn-cart--sm ${adding ? "btn-cart--added" : ""} ${isClosed ? "btn-cart--disabled" : ""}`}
             onClick={handleCart}
+            disabled={isClosed}
           >
-            {adding ? "✓" : "+ Add"}
+            {isClosed ? "🔒" : adding ? "✓" : "+ Add"}
           </button>
         </div>
       </div>
@@ -330,6 +335,7 @@ export default function Home() {
     try { return JSON.parse(localStorage.getItem("cart") || "[]"); } catch { return []; }
   });
   const [toast, setToast]               = useState(null);
+  const [openMap, setOpenMap]           = useState({});   // restaurantId → true/false
 
   useEffect(() => {
     setTimeout(() => setMounted(true), 50);
@@ -369,6 +375,21 @@ export default function Home() {
         merchantMap[r._id] = r.restaurantName;
         if (r.merchantId) merchantMap[r.merchantId] = r.restaurantName;
       });
+
+      // Build open/closed map: restaurantId → bool
+      const oMap = {};
+      const now = new Date();
+      const cur = now.getHours() * 60 + now.getMinutes();
+      list.forEach(r => {
+        if (r.openingTime && r.closingTime) {
+          const [oh, om] = r.openingTime.split(":").map(Number);
+          const [ch, cm] = r.closingTime.split(":").map(Number);
+          const open = cur >= oh * 60 + om && cur <= ch * 60 + cm;
+          oMap[r._id] = open;
+          if (r.merchantId) oMap[r.merchantId] = open;
+        }
+      });
+      setOpenMap(oMap);
 
       // Fetch all food items from the dedicated endpoint
       try {
@@ -571,7 +592,7 @@ export default function Home() {
         ) : (
           <div className="food-grid">
             {foodItems.map((item, i) => (
-              <FoodItemCard key={item._id || i} item={item} onAddToCart={addToCart} />
+              <FoodItemCard key={item._id || i} item={item} onAddToCart={addToCart} isClosed={openMap[item.restaurantId] === false} />
             ))}
           </div>
         )}
@@ -588,7 +609,7 @@ export default function Home() {
           </div>
           <div className="menu-scroll">
             {menuItems.map((item, i) => (
-              <MenuItemCard key={i} item={item} onAddToCart={addToCart} />
+              <MenuItemCard key={i} item={item} onAddToCart={addToCart} isClosed={openMap[item.restaurantId] === false} />
             ))}
           </div>
         </section>
@@ -597,7 +618,7 @@ export default function Home() {
       {/* ── FOOTER ── */}
       <footer className="address-strip">
         <div className="address-strip__inner">
-          <span className="address-strip__logo">Foodie</span>
+          <span className="address-strip__logo">OmniRetail</span>
           <div className="address-strip__links">
             <a href="/about">About</a>
             <a href="/careers">Careers</a>
@@ -605,7 +626,7 @@ export default function Home() {
             <a href="/privacy">Privacy</a>
           </div>
           <p className="address-strip__addr">
-            📍 Infotact Solutions &amp; Co., Bengaluru, Karnataka 560001 · support@foodie.in
+            📍 Infotact Solutions &amp; Co., Bengaluru, Karnataka 560001 · support@omniretail.in
           </p>
         </div>
       </footer>
