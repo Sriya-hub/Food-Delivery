@@ -23,6 +23,11 @@ from "../pages/customer/Checkout";
 import OrderSuccess
 from "../pages/customer/OrderSuccess";
 
+
+
+import CustomerOrders
+from "../pages/customer/CustomerOrders";
+
 /* =========================
    AUTH
 ========================= */
@@ -177,6 +182,11 @@ export default function AppRoutes() {
           path="/cart"
           element={<Cart />}
         />
+
+        <Route
+  path="/my-orders"
+  element={<CustomerOrders />}
+/>
 
         <Route
           path="/checkout"

@@ -100,7 +100,9 @@ export default function Checkout() {
       if (payMethod === "COD") {
         localStorage.removeItem("cart");
         window.dispatchEvent(new Event("cart-updated"));
-        navigate("/order-success", { state: { orderId: data.orderId, method: "COD" } });
+        navigate(
+  `/order-success/${data.orderId}`
+);
         return;
       }
 
@@ -133,7 +135,9 @@ export default function Checkout() {
             if (verify.data.success) {
               localStorage.removeItem("cart");
               window.dispatchEvent(new Event("cart-updated"));
-              navigate("/order-success", { state: { orderId: data.orderId, method: "ONLINE" } });
+              navigate(
+  `/order-success/${data.orderId}`
+);
             } else {
               setError("Payment verification failed. Contact support.");
             }

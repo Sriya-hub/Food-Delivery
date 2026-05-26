@@ -183,7 +183,7 @@ export default function Header() {
                 <div className="header__dropdown">
                   <p className="header__dropdown-email">{user.email}</p>
                   <a onClick={() => navigate("/profile")}>My Profile</a>
-                  <a onClick={() => navigate("/orders")}>My Orders</a>
+                  <a onClick={() => navigate("/my-orders")}>My Orders</a>
                   <a onClick={() => navigate("/reservations")}>Reservations</a>
                   <hr />
                   <a className="header__dropdown-logout" onClick={logout}>Sign out</a>

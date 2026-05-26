@@ -30,9 +30,9 @@ export default function MerchantSidebar({ activeTab, setActiveTab, merchantName 
     <aside className="ms">
       {/* BRAND */}
       <div className="ms__brand">
-        <div className="ms__brand-icon">O</div>
+        <div className="ms__brand-icon">F</div>
         <div>
-          <span className="ms__brand-name">OmniRetail</span>
+          <span className="ms__brand-name">Foodie</span>
           <span className="ms__brand-sub">Merchant Portal</span>
         </div>
       </div>
