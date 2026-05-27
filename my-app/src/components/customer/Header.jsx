@@ -136,6 +136,94 @@ function CenterMarquee() {
   );
 }
 
+/* ── User Dropdown ── */
+function UserDropdown({ user, onClose, menuRef }) {
+  const navigate = useNavigate();
+
+  const logout = () => {
+    localStorage.clear();
+    onClose();
+    navigate("/login");
+  };
+
+  const go = (path) => { onClose(); navigate(path); };
+
+  const initials = user?.name
+    ?.split(" ")
+    .map(w => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return (
+    <div className="hd-dropdown" ref={menuRef}>
+      {/* ── Header card ── */}
+      <div className="hd-dropdown__card">
+        <div className="hd-dropdown__avatar">{initials}</div>
+        <div className="hd-dropdown__info">
+          <p className="hd-dropdown__name">{user?.name}</p>
+          <p className="hd-dropdown__email">{user?.email}</p>
+        </div>
+      </div>
+
+      <div className="hd-dropdown__divider" />
+
+      {/* ── Menu items ── */}
+      <ul className="hd-dropdown__list">
+        <li onClick={() => go("/profile")}>
+          <span className="hd-dropdown__icon">
+            {/* Person icon */}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+          </span>
+          <span>My Profile</span>
+          <span className="hd-dropdown__arrow">›</span>
+        </li>
+
+        <li onClick={() => go("/my-orders")}>
+          <span className="hd-dropdown__icon">
+            {/* Receipt icon */}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+              <rect x="9" y="3" width="6" height="4" rx="1"/>
+              <path d="M9 12h6M9 16h4"/>
+            </svg>
+          </span>
+          <span>My Orders</span>
+          <span className="hd-dropdown__arrow">›</span>
+        </li>
+
+        <li onClick={() => go("/reservations")}>
+          <span className="hd-dropdown__icon">
+            {/* Calendar / table icon */}
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <path d="M16 2v4M8 2v4M3 10h18"/>
+              <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>
+            </svg>
+          </span>
+          <span>Table Bookings</span>
+          <span className="hd-dropdown__arrow">›</span>
+        </li>
+      </ul>
+
+      <div className="hd-dropdown__divider" />
+
+      {/* ── Logout ── */}
+      <button className="hd-dropdown__logout" onClick={logout}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Sign out
+      </button>
+    </div>
+  );
+}
+
 /* ── Header ── */
 export default function Header() {
   const navigate = useNavigate();
@@ -152,6 +240,7 @@ export default function Header() {
     if (loc) setLocation(JSON.parse(loc));
   }, []);
 
+  /* Close dropdown when clicking outside */
   useEffect(() => {
     const handler = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false);
@@ -170,14 +259,13 @@ export default function Header() {
     setShowLoc(false);
   };
 
-  const logout = () => { localStorage.clear(); setUser(null); navigate("/login"); };
   const initials = user?.name?.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 
   return (
     <>
       <header className="header">
 
-        {/* ── Brand (static, no marquee) ── */}
+        {/* ── Brand ── */}
         <div className="header__brand" onClick={() => navigate("/")}>
           <span className="header__logo">🍽</span>
           <span className="header__name">Foodie</span>
@@ -198,25 +286,28 @@ export default function Header() {
         {/* ── CENTER: Scrolling marquee ticker ── */}
         <CenterMarquee />
 
-        {/* ── Right ── */}
+        {/* ── Right controls ── */}
         <div className="header__right">
           <CartIcon />
 
           {user ? (
-            <div className="header__user" ref={menuRef}>
-              <button className="header__avatar" onClick={() => setShowMenu(v => !v)}>
+            <div className="header__user" style={{ position: "relative" }}>
+              <button
+                className="header__avatar"
+                onClick={() => setShowMenu(v => !v)}
+                aria-label="Open user menu"
+                aria-expanded={showMenu}
+              >
                 <span>{initials}</span>
               </button>
               <span className="header__username">{user.name?.split(" ")[0]}</span>
+
               {showMenu && (
-                <div className="header__dropdown">
-                  <p className="header__dropdown-email">{user.email}</p>
-                  <a onClick={() => navigate("/profile")}>My Profile</a>
-                  <a onClick={() => navigate("/my-orders")}>My Orders</a>
-                  <a onClick={() => navigate("/reservations")}>Reservations</a>
-                  <hr />
-                  <a className="header__dropdown-logout" onClick={logout}>Sign out</a>
-                </div>
+                <UserDropdown
+                  user={user}
+                  onClose={() => setShowMenu(false)}
+                  menuRef={menuRef}
+                />
               )}
             </div>
           ) : (

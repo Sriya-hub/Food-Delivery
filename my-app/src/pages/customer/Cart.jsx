@@ -45,17 +45,51 @@ export default function Cart() {
         <div className="cp__blob cp__blob--2" />
       </div>
 
+      {/* ── HERO BANNER (matches Checkout style) ── */}
+      <div className="cp__hero">
+        <div className="cp__hero-inner">
+          <div>
+            <div className="cp__badge">🛒 Your Order</div>
+            <h1 className="cp__hero-title">
+              Your <em>Cart</em>
+            </h1>
+            <p className="cp__hero-sub">
+              {totalQty > 0
+                ? `${totalQty} item${totalQty > 1 ? "s" : ""} · ready to order`
+                : "Nothing here yet — let's fix that!"}
+            </p>
+          </div>
+          {totalQty > 0 && (
+            <div className="cp__stats">
+              {[
+                { v: totalQty,                        l: "Items"    },
+                { v: `₹${subtotal.toLocaleString()}`, l: "Subtotal" },
+                { v: "~30 min",                       l: "ETA"      },
+              ].map(({ v, l }) => (
+                <div className="cp__stat" key={l}>
+                  <strong>{v}</strong>
+                  <span>{l}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="cp__wrap">
 
         {/* ── HEADER ROW ── */}
         <div className="cp__top">
           <div className="cp__top-left">
             <button className="cp__back" onClick={() => navigate(-1)}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M19 12H5M12 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </button>
             <div>
-              <h1 className="cp__title">Your Cart</h1>
-              <p className="cp__sub">{totalQty > 0 ? `${totalQty} item${totalQty > 1 ? "s" : ""} · ready to order` : "Nothing here yet"}</p>
+              <p className="cp__sub">
+                {totalQty > 0 ? `${totalQty} item${totalQty > 1 ? "s" : ""} · ready to order` : "Nothing here yet"}
+              </p>
             </div>
           </div>
           {items.length > 0 && (
@@ -74,7 +108,9 @@ export default function Cart() {
             <p>Looks like you haven't added anything yet.<br/>Let's fix that.</p>
             <button className="cp__empty-cta" onClick={() => navigate("/")}>
               Explore Restaurants
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </button>
           </div>
 
@@ -101,7 +137,11 @@ export default function Cart() {
                         {item.category && <span className="cp__item-cat">{item.category}</span>}
                       </div>
                       <button className="cp__item-del" onClick={() => del(item._id)}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6l-1 14H6L5 6"/>
+                          <path d="M9 6V4h6v2"/>
+                        </svg>
                       </button>
                     </div>
 
@@ -156,7 +196,9 @@ export default function Cart() {
 
                 <button className="cp__cta" onClick={() => navigate("/checkout")}>
                   <span>Proceed to Checkout</span>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </button>
 
                 <button className="cp__more" onClick={() => navigate("/")}>

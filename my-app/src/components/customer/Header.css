@@ -16,12 +16,12 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  /* Allow center marquee to grow and fill the space */
-  overflow: hidden;
+  /* ✅ FIXED: was overflow:hidden which clipped the dropdown */
+  overflow: visible;
 }
 
 /* ══════════════════════════════════════
-   BRAND  (restored – static name)
+   BRAND
 ══════════════════════════════════════ */
 .header__brand {
   display: flex;
@@ -99,20 +99,16 @@
 
 /* ══════════════════════════════════════
    CENTER MARQUEE TICKER
-   Sits between location pill and cart.
-   flex: 1 makes it fill all spare space.
-   overflow: hidden clips the scrolling text.
-   Fade masks on left & right for polish.
+   ✅ FIXED: overflow:hidden only on marquee itself, not header
 ══════════════════════════════════════ */
 .header__marquee {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
+  overflow: hidden;           /* ← overflow hidden ONLY here, not on .header */
   position: relative;
   height: 36px;
   display: flex;
   align-items: center;
-  /* Soft fade edges so text dissolves cleanly */
   -webkit-mask-image: linear-gradient(
     to right,
     transparent 0%,
@@ -129,7 +125,6 @@
   );
 }
 
-/* Pause animation on hover */
 .header__marquee:hover .header__marquee-track {
   animation-play-state: paused;
 }
@@ -138,9 +133,6 @@
   display: flex;
   align-items: center;
   white-space: nowrap;
-  /* Each span is one full copy of the text.
-     animation moves left by exactly 50% (one copy width),
-     then loops seamlessly.                               */
   animation: ticker-scroll 28s linear infinite;
   will-change: transform;
 }
@@ -149,7 +141,6 @@
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 0.8rem;
   font-weight: 600;
-  /* Gradient text matching the brand palette */
   background: linear-gradient(90deg, #ff6b2b 0%, #ff3b7a 50%, #7c3aed 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -171,6 +162,9 @@
   align-items: center;
   gap: 14px;
   flex-shrink: 0;
+  /* ✅ Must be visible so dropdown isn't clipped */
+  overflow: visible;
+  position: relative;
 }
 
 /* ── Cart ── */
@@ -220,12 +214,14 @@
   line-height: 1;
 }
 
-/* ── User avatar ── */
+/* ── User avatar wrapper ── */
 .header__user {
-  position: relative;
+  position: relative;   /* ✅ dropdown is positioned relative to this */
   display: flex;
   align-items: center;
   gap: 8px;
+  /* ✅ Must NOT clip */
+  overflow: visible;
 }
 
 .header__avatar {
@@ -261,73 +257,166 @@
   color: #333;
 }
 
-/* ── Dropdown ── */
-.header__dropdown {
+/* ══════════════════════════════════════
+   NEW USER DROPDOWN  (.hd-dropdown)
+══════════════════════════════════════ */
+.hd-dropdown {
   position: absolute;
-  top: calc(100% + 12px);
+  top: calc(100% + 10px);
   right: 0;
-  width: 210px;
-  background: #fff;
+  width: 270px;
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
   border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.07);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-  padding: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.13), 0 2px 8px rgba(0, 0, 0, 0.07);
+  z-index: 9999;
+  overflow: hidden;
+  animation: hd-pop 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: top right;
+}
+
+@keyframes hd-pop {
+  from { opacity: 0; transform: scale(0.92) translateY(-6px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);    }
+}
+
+/* Profile card at top */
+.hd-dropdown__card {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  z-index: 200;
-  animation: dropdown-in 0.15s ease;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, #fff8f3 0%, #fff4ed 100%);
 }
 
-@keyframes dropdown-in {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+.hd-dropdown__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6b2b, #ff3b7a, #7c3aed);
+  color: #ffffff;
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(255, 107, 43, 0.35);
 }
 
-.header__dropdown-email {
+.hd-dropdown__info { min-width: 0; }
+
+.hd-dropdown__name {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.72rem;
-  color: #aaa;
-  padding: 6px 10px 8px;
-  margin: 0;
-  border-bottom: 1px solid #f0f0f0;
-  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  margin: 0 0 2px;
 }
 
-.header__dropdown a {
-  display: block;
-  padding: 9px 12px;
-  border-radius: 10px;
+.hd-dropdown__email {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: #333;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-  text-decoration: none;
+  font-size: 11.5px;
+  color: #888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
 }
 
-.header__dropdown a:hover {
-  background: rgba(255, 107, 43, 0.07);
+/* Divider */
+.hd-dropdown__divider {
+  height: 1px;
+  background: #f2f2f2;
+  margin: 0;
+}
+
+/* Menu list */
+.hd-dropdown__list {
+  list-style: none;
+  margin: 6px 0;
+  padding: 0;
+}
+
+.hd-dropdown__list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 18px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #222;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.hd-dropdown__list li:hover {
+  background: #fff5f0;
   color: #ff6b2b;
 }
 
-.header__dropdown hr {
+.hd-dropdown__list li:hover .hd-dropdown__icon svg {
+  stroke: #ff6b2b;
+}
+
+.hd-dropdown__icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hd-dropdown__icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: #666;
+  transition: stroke 0.12s;
+}
+
+.hd-dropdown__arrow {
+  margin-left: auto;
+  font-size: 16px;
+  color: #ccc;
+  line-height: 1;
+}
+
+.hd-dropdown__list li:hover .hd-dropdown__arrow {
+  color: #ff6b2b;
+}
+
+/* Logout */
+.hd-dropdown__logout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 18px;
+  background: none;
   border: none;
-  border-top: 1px solid #f0f0f0;
-  margin: 4px 0;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #e53935;
+  transition: background 0.12s;
+  margin: 4px 0 6px;
 }
 
-.header__dropdown-logout {
-  color: #ef4444 !important;
-}
+.hd-dropdown__logout:hover { background: #fff5f5; }
 
-.header__dropdown-logout:hover {
-  background: rgba(239, 68, 68, 0.07) !important;
-  color: #ef4444 !important;
+.hd-dropdown__logout svg {
+  width: 17px;
+  height: 17px;
+  stroke: #e53935;
+  flex-shrink: 0;
 }
 
 /* ── Sign in button ── */
@@ -349,10 +438,7 @@
   box-shadow: 0 4px 16px rgba(255, 107, 43, 0.3);
 }
 
-.header__login svg {
-  width: 14px;
-  height: 14px;
-}
+.header__login svg { width: 14px; height: 14px; }
 
 .header__login:hover {
   transform: translateY(-1px);
@@ -360,9 +446,7 @@
   filter: brightness(1.06);
 }
 
-.header__login:active {
-  transform: translateY(0);
-}
+.header__login:active { transform: translateY(0); }
 
 /* ══════════════════════════════════════
    LOCATION MODAL
@@ -448,9 +532,7 @@
   transition: border-color 0.2s ease;
 }
 
-.loc-search:focus-within {
-  border-color: #ff6b2b;
-}
+.loc-search:focus-within { border-color: #ff6b2b; }
 
 .loc-search svg {
   width: 16px;
@@ -469,9 +551,7 @@
   color: #333;
 }
 
-.loc-search input::placeholder {
-  color: #bbb;
-}
+.loc-search input::placeholder { color: #bbb; }
 
 .loc-detect {
   display: flex;

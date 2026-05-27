@@ -7,6 +7,7 @@ import Cart              from "../pages/customer/Cart";
 import Checkout          from "../pages/customer/Checkout";
 import OrderSuccess      from "../pages/customer/OrderSuccess";
 import CustomerOrders    from "../pages/customer/CustomerOrders";
+import Profile           from "../pages/customer/Profile";
 
 /* ── Auth ── */
 import Login             from "../pages/auth/Login";
@@ -56,6 +57,7 @@ export default function AppRoutes() {
         <Route path="/my-orders"              element={<CustomerOrders />} />
         <Route path="/checkout"               element={<Checkout />} />
         <Route path="/order-success/:orderId" element={<OrderSuccess />} />
+        <Route path="/profile" element={<Profile/>} />
 
         {/* ── Auth ── */}
         <Route path="/login"                  element={<Login />} />
