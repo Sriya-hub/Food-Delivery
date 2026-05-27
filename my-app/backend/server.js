@@ -98,29 +98,36 @@ app.use(
 );
 
 app.use(
-
   "/api/payment",
 
   require("./routes/payment.routes")
 );
 
 app.use(
-
   "/api/merchant-settings",
 
   require("./routes/merchantsettings.routes")
 );
 
-
 app.use(
-
   "/api/orders",
 
   require("./routes/orders.routes")
 );
 
+app.use(
+  "/api/checkout",
 
-app.use("/api/checkout", require("./routes/checkout.routes"));
+  require("./routes/checkout.routes")
+);
+
+/* PROFILE ROUTES */
+
+app.use(
+  "/api",
+
+  require("./routes/profile.routes")
+);
 
 /* =========================
    TEST ROUTE

@@ -3,40 +3,157 @@ import { useNavigate } from "react-router-dom";
 import Header from "../../components/customer/Header";
 import "./Profile.css";
 
+const API = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
+/* ══════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════ */
+function getToken() {
+  return localStorage.getItem("token") || "";
+}
+
+function saveUserLocal(user) {
+  localStorage.setItem("user", JSON.stringify(user));
+}
+
+/* ══════════════════════════════════════════
+   MAIN COMPONENT
+══════════════════════════════════════════ */
 export default function Profile() {
   const navigate = useNavigate();
-  const [user, setUser]       = useState(null);
-  const [editing, setEditing] = useState(false);
-  const [form, setForm]       = useState({});
-  const [saved, setSaved]     = useState(false);
 
+  const [user,    setUser]    = useState(null);
+  const [phone,   setPhone]   = useState("");
+  const [editing, setEditing] = useState(false);
+  const [toast,   setToast]   = useState(null); // { type: "success"|"error", msg }
+  const [saving,  setSaving]  = useState(false);
+
+  /* Address state */
+  const [addresses,    setAddresses]    = useState([]);
+  const [showAddrForm, setShowAddrForm] = useState(false);
+  const [addrForm,     setAddrForm]     = useState({
+    label: "Home", line1: "", line2: "", city: "", pincode: "", isDefault: false,
+  });
+  const [addrSaving, setAddrSaving] = useState(false);
+
+  /* ── Load user from localStorage then refresh from server ── */
   useEffect(() => {
-    const u = localStorage.getItem("user");
-    if (!u) { navigate("/login"); return; }
-    const parsed = JSON.parse(u);
+    const raw = localStorage.getItem("user");
+    if (!raw) { navigate("/login"); return; }
+    const parsed = JSON.parse(raw);
     setUser(parsed);
-    setForm({
-      name:    parsed.name    || "",
-      email:   parsed.email   || "",
-      phone:   parsed.phone   || "",
-      address: parsed.address || "",
-    });
+    setPhone(parsed.phoneNumber || "");
+    setAddresses(parsed.deliveryAddresses || []);
+
+    /* Refresh from DB */
+    fetchProfile();
   }, [navigate]);
+
+  async function fetchProfile() {
+    try {
+      const res  = await fetch(`${API}/profile`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUser(data.user);
+        setPhone(data.user.phoneNumber || "");
+        setAddresses(data.user.deliveryAddresses || []);
+        saveUserLocal(data.user);
+      }
+    } catch { /* silent — local data already shown */ }
+  }
+
+  /* ── Save phone number ── */
+  async function handleSave() {
+    setSaving(true);
+    try {
+      const res  = await fetch(`${API}/profile`, {
+        method:  "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization:  `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({ phoneNumber: phone }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUser(data.user);
+        saveUserLocal(data.user);
+        setEditing(false);
+        showToast("success", "Profile updated successfully!");
+      } else {
+        showToast("error", data.message || "Update failed");
+      }
+    } catch {
+      showToast("error", "Network error — please try again");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  /* ── Add delivery address ── */
+  async function handleAddAddress() {
+    if (!addrForm.line1.trim()) {
+      showToast("error", "Address line 1 is required");
+      return;
+    }
+    setAddrSaving(true);
+    try {
+      const res  = await fetch(`${API}/profile/address`, {
+        method:  "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization:  `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify(addrForm),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAddresses(data.deliveryAddresses);
+        const updatedUser = { ...user, deliveryAddresses: data.deliveryAddresses };
+        setUser(updatedUser);
+        saveUserLocal(updatedUser);
+        setShowAddrForm(false);
+        setAddrForm({ label: "Home", line1: "", line2: "", city: "", pincode: "", isDefault: false });
+        showToast("success", "Address saved!");
+      } else {
+        showToast("error", data.message || "Could not save address");
+      }
+    } catch {
+      showToast("error", "Network error — please try again");
+    } finally {
+      setAddrSaving(false);
+    }
+  }
+
+  /* ── Delete delivery address ── */
+  async function handleDeleteAddress(addressId) {
+    try {
+      const res  = await fetch(`${API}/profile/address/${addressId}`, {
+        method:  "DELETE",
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAddresses(data.deliveryAddresses);
+        const updatedUser = { ...user, deliveryAddresses: data.deliveryAddresses };
+        setUser(updatedUser);
+        saveUserLocal(updatedUser);
+        showToast("success", "Address removed");
+      }
+    } catch {
+      showToast("error", "Could not remove address");
+    }
+  }
+
+  function showToast(type, msg) {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 3000);
+  }
 
   const initials = user?.name
     ?.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
-
-  const handleSave = () => {
-    const updated = { ...user, ...form };
-    localStorage.setItem("user", JSON.stringify(updated));
-    setUser(updated);
-    setEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2800);
-  };
-
-  const handleChange = (field, val) =>
-    setForm(prev => ({ ...prev, [field]: val }));
 
   if (!user) return null;
 
@@ -45,8 +162,6 @@ export default function Profile() {
       <Header />
 
       <div className="pf-page">
-
-        {/* ── Decorative background blobs ── */}
         <div className="pf-blob pf-blob--1" aria-hidden="true" />
         <div className="pf-blob pf-blob--2" aria-hidden="true" />
 
@@ -73,17 +188,22 @@ export default function Profile() {
           </div>
 
           {/* ── Toast ── */}
-          {saved && (
-            <div className="pf-toast" role="status">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-                   strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 6L9 17l-5-5"/>
-              </svg>
-              Profile updated successfully!
+          {toast && (
+            <div className={`pf-toast pf-toast--${toast.type}`} role="status">
+              {toast.type === "success" ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                     strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
+                     strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+              )}
+              {toast.msg}
             </div>
           )}
 
-          {/* ── Info card ── */}
+          {/* ══════════════════════════════════
+              PERSONAL INFORMATION CARD
+          ══════════════════════════════════ */}
           <div className="pf-card">
             <div className="pf-card__head">
               <div className="pf-card__title">
@@ -101,33 +221,185 @@ export default function Profile() {
                 </button>
               ) : (
                 <div className="pf-edit-actions">
-                  <button className="pf-cancel-btn" onClick={() => setEditing(false)}>Cancel</button>
-                  <button className="pf-save-btn"   onClick={handleSave}>Save Changes</button>
+                  <button className="pf-cancel-btn" onClick={() => { setEditing(false); setPhone(user.phoneNumber || ""); }}>
+                    Cancel
+                  </button>
+                  <button className="pf-save-btn" onClick={handleSave} disabled={saving}>
+                    {saving ? "Saving…" : "Save Changes"}
+                  </button>
                 </div>
               )}
             </div>
 
             <div className="pf-fields">
+              {/* Name — read only */}
               <PfField
-                label="Full Name" value={form.name} editing={editing} type="text"
-                placeholder="Your full name" onChange={v => handleChange("name", v)}
+                label="Full Name"
+                value={user.name}
+                editing={false}
                 icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>}
+                locked
               />
+              {/* Email — read only */}
               <PfField
-                label="Email Address" value={form.email} editing={editing} type="email"
-                placeholder="your@email.com" onChange={v => handleChange("email", v)}
+                label="Email Address"
+                value={user.email}
+                editing={false}
                 icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 8l10 7 10-7"/></svg>}
+                locked
               />
+              {/* Phone — editable */}
               <PfField
-                label="Phone Number" value={form.phone} editing={editing} type="tel"
-                placeholder="Add phone number" onChange={v => handleChange("phone", v)}
+                label="Phone Number"
+                value={phone}
+                editing={editing}
+                type="tel"
+                placeholder="Add phone number"
+                onChange={setPhone}
                 icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 11.36 19 19.45 19.45 0 0 1 5 12.64 19.79 19.79 0 0 1 2.08 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>}
               />
-              <PfField
-                label="Delivery Address" value={form.address} editing={editing} type="text"
-                placeholder="Add default delivery address" onChange={v => handleChange("address", v)}
-                icon={<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>}
-              />
+            </div>
+          </div>
+
+          {/* ══════════════════════════════════
+              DELIVERY ADDRESSES CARD
+          ══════════════════════════════════ */}
+          <div className="pf-card">
+            <div className="pf-card__head">
+              <div className="pf-card__title">
+                <div className="pf-card__title-dot" style={{ background: "linear-gradient(135deg,#7c3aed,#ff3b7a)" }} />
+                Delivery Addresses
+              </div>
+              <button className="pf-edit-btn" onClick={() => setShowAddrForm(v => !v)}>
+                {showAddrForm ? (
+                  <>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    Cancel
+                  </>
+                ) : (
+                  <>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                    Add New
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Add address form */}
+            {showAddrForm && (
+              <div className="pf-addr-form">
+                <div className="pf-addr-form__grid">
+                  <div className="pf-addr-form__group pf-addr-form__group--half">
+                    <label className="pf-field__label">Label</label>
+                    <select
+                      className="pf-field__input"
+                      value={addrForm.label}
+                      onChange={e => setAddrForm(p => ({ ...p, label: e.target.value }))}
+                    >
+                      <option>Home</option>
+                      <option>Work</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+                  <div className="pf-addr-form__group pf-addr-form__group--half pf-addr-form__default-row">
+                    <label className="pf-addr-form__check-label">
+                      <input
+                        type="checkbox"
+                        checked={addrForm.isDefault}
+                        onChange={e => setAddrForm(p => ({ ...p, isDefault: e.target.checked }))}
+                      />
+                      Set as default
+                    </label>
+                  </div>
+                  <div className="pf-addr-form__group">
+                    <label className="pf-field__label">Address Line 1 *</label>
+                    <input
+                      className="pf-field__input"
+                      placeholder="Street, Building, Flat no."
+                      value={addrForm.line1}
+                      onChange={e => setAddrForm(p => ({ ...p, line1: e.target.value }))}
+                    />
+                  </div>
+                  <div className="pf-addr-form__group">
+                    <label className="pf-field__label">Address Line 2</label>
+                    <input
+                      className="pf-field__input"
+                      placeholder="Area, Landmark (optional)"
+                      value={addrForm.line2}
+                      onChange={e => setAddrForm(p => ({ ...p, line2: e.target.value }))}
+                    />
+                  </div>
+                  <div className="pf-addr-form__group pf-addr-form__group--half">
+                    <label className="pf-field__label">City</label>
+                    <input
+                      className="pf-field__input"
+                      placeholder="City"
+                      value={addrForm.city}
+                      onChange={e => setAddrForm(p => ({ ...p, city: e.target.value }))}
+                    />
+                  </div>
+                  <div className="pf-addr-form__group pf-addr-form__group--half">
+                    <label className="pf-field__label">Pincode</label>
+                    <input
+                      className="pf-field__input"
+                      placeholder="000000"
+                      value={addrForm.pincode}
+                      onChange={e => setAddrForm(p => ({ ...p, pincode: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <button
+                  className="pf-save-btn pf-addr-form__submit"
+                  onClick={handleAddAddress}
+                  disabled={addrSaving}
+                >
+                  {addrSaving ? "Saving…" : "Save Address"}
+                </button>
+              </div>
+            )}
+
+            {/* Address list */}
+            {addresses.length === 0 && !showAddrForm && (
+              <div className="pf-addr-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
+                     strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>
+                </svg>
+                <span>No delivery addresses yet. Add one!</span>
+              </div>
+            )}
+
+            <div className="pf-addr-list">
+              {addresses.map(addr => (
+                <div key={addr._id} className={`pf-addr-item${addr.isDefault ? " pf-addr-item--default" : ""}`}>
+                  <div className="pf-addr-item__icon">
+                    {addr.label === "Work" ? (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    )}
+                  </div>
+                  <div className="pf-addr-item__body">
+                    <div className="pf-addr-item__top">
+                      <span className="pf-addr-item__label">{addr.label}</span>
+                      {addr.isDefault && <span className="pf-addr-item__default-badge">Default</span>}
+                    </div>
+                    <p className="pf-addr-item__text">
+                      {addr.line1}{addr.line2 ? `, ${addr.line2}` : ""}{addr.city ? `, ${addr.city}` : ""}{addr.pincode ? ` - ${addr.pincode}` : ""}
+                    </p>
+                  </div>
+                  <button
+                    className="pf-addr-item__delete"
+                    onClick={() => handleDeleteAddress(addr._id)}
+                    title="Remove address"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                         strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                    </svg>
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -167,14 +439,20 @@ export default function Profile() {
   );
 }
 
-/* ── Field sub-component ── */
-function PfField({ label, value, editing, onChange, type, placeholder, icon }) {
+/* ══════════════════════════════════════════
+   PfField — displays or edits one field
+   locked = true  →  read-only, greyed out
+══════════════════════════════════════════ */
+function PfField({ label, value, editing, onChange, type = "text", placeholder, icon, locked }) {
   return (
     <div className="pf-field">
       <div className="pf-field__icon">{icon}</div>
       <div className="pf-field__body">
-        <span className="pf-field__label">{label}</span>
-        {editing ? (
+        <span className="pf-field__label">
+          {label}
+          {locked && <span className="pf-field__lock-badge">cannot change</span>}
+        </span>
+        {editing && !locked ? (
           <input
             className="pf-field__input"
             type={type}
@@ -183,8 +461,8 @@ function PfField({ label, value, editing, onChange, type, placeholder, icon }) {
             onChange={e => onChange(e.target.value)}
           />
         ) : (
-          <p className="pf-field__value">
-            {value || <em className="pf-field__empty">{placeholder}</em>}
+          <p className={`pf-field__value${locked ? " pf-field__value--locked" : ""}`}>
+            {value || <em className="pf-field__empty">{placeholder || "—"}</em>}
           </p>
         )}
       </div>
@@ -192,7 +470,9 @@ function PfField({ label, value, editing, onChange, type, placeholder, icon }) {
   );
 }
 
-/* ── Quick-link sub-component ── */
+/* ══════════════════════════════════════════
+   PfLink — quick-link row
+══════════════════════════════════════════ */
 function PfLink({ label, sublabel, accent, onClick, icon }) {
   return (
     <button className="pf-link" onClick={onClick} style={{ "--acc": accent }}>

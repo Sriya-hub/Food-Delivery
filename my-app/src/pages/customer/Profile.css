@@ -12,7 +12,7 @@
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-/* ── decorative background blobs (match site palette) ── */
+/* ── decorative background blobs ── */
 .pf-blob {
   position: fixed;
   border-radius: 50%;
@@ -79,7 +79,6 @@
   box-shadow: 0 16px 48px rgba(255, 107, 43, 0.28);
 }
 
-/* subtle inner glow overlay */
 .pf-hero__glow {
   position: absolute;
   inset: 0;
@@ -153,16 +152,27 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  background: #f0fdf4;
-  border: 1.5px solid #bbf7d0;
-  color: #166534;
   font-size: 0.84rem;
   font-weight: 600;
   padding: 13px 18px;
   border-radius: 14px;
   animation: pf-toast-in 0.3s cubic-bezier(0.34,1.56,0.64,1);
 }
-.pf-toast svg { width: 17px; height: 17px; stroke: #16a34a; flex-shrink: 0; }
+.pf-toast svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+.pf-toast--success {
+  background: #f0fdf4;
+  border: 1.5px solid #bbf7d0;
+  color: #166534;
+}
+.pf-toast--success svg { stroke: #16a34a; }
+
+.pf-toast--error {
+  background: #fff5f5;
+  border: 1.5px solid #fecaca;
+  color: #b91c1c;
+}
+.pf-toast--error svg { stroke: #ef4444; }
 
 @keyframes pf-toast-in {
   from { opacity: 0; transform: translateY(-8px) scale(0.97); }
@@ -254,7 +264,8 @@
   box-shadow: 0 4px 14px rgba(255,107,43,0.3);
   transition: all 0.18s;
 }
-.pf-save-btn:hover { filter: brightness(1.07); box-shadow: 0 6px 18px rgba(255,107,43,0.4); }
+.pf-save-btn:hover:not(:disabled) { filter: brightness(1.07); box-shadow: 0 6px 18px rgba(255,107,43,0.4); }
+.pf-save-btn:disabled { opacity: 0.65; cursor: not-allowed; }
 
 /* ── Fields ── */
 .pf-fields { display: flex; flex-direction: column; }
@@ -288,7 +299,9 @@
 .pf-field__body { flex: 1; min-width: 0; }
 
 .pf-field__label {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.68rem;
   font-weight: 700;
   color: #9ca3af;
@@ -297,12 +310,29 @@
   margin-bottom: 3px;
 }
 
+/* "cannot change" pill shown on locked fields */
+.pf-field__lock-badge {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #c4b5fd;
+  background: rgba(124,58,237,0.08);
+  border: 1px solid rgba(124,58,237,0.15);
+  padding: 1px 7px;
+  border-radius: 100px;
+  letter-spacing: 0.03em;
+  text-transform: lowercase;
+}
+
 .pf-field__value {
   font-size: 0.9rem;
   font-weight: 600;
   color: #1a1a2e;
   margin: 0;
   word-break: break-word;
+}
+.pf-field__value--locked {
+  color: #6b7280;
+  font-weight: 500;
 }
 
 .pf-field__empty {
@@ -330,6 +360,174 @@
   box-shadow: 0 0 0 3px rgba(255,107,43,0.1);
   background: #fff;
 }
+
+/* ══════════════════════════════════════════
+   DELIVERY ADDRESS SECTION
+══════════════════════════════════════════ */
+
+/* ── Add form ── */
+.pf-addr-form {
+  background: #faf9ff;
+  border: 1.5px dashed #e0d9f7;
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 16px;
+  animation: pf-toast-in 0.25s ease;
+}
+
+.pf-addr-form__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.pf-addr-form__group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 100%;
+}
+.pf-addr-form__group--half { flex: 1 1 calc(50% - 6px); min-width: 120px; }
+
+.pf-addr-form__default-row {
+  justify-content: center;
+}
+
+.pf-addr-form__check-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #4b5563;
+  cursor: pointer;
+  margin-top: 18px;
+}
+.pf-addr-form__check-label input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: #7c3aed;
+  cursor: pointer;
+}
+
+.pf-addr-form__submit {
+  width: 100%;
+  padding: 11px;
+  font-size: 0.88rem;
+  border-radius: 12px;
+}
+
+/* ── Empty state ── */
+.pf-addr-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px 0 18px;
+  color: #c4b5fd;
+}
+.pf-addr-empty svg {
+  width: 40px;
+  height: 40px;
+  stroke: #c4b5fd;
+}
+.pf-addr-empty span {
+  font-size: 0.83rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+/* ── Address list ── */
+.pf-addr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 14px;
+}
+
+.pf-addr-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #faf9ff;
+  border: 1.5px solid #f3f4f6;
+  border-radius: 14px;
+  padding: 14px 14px 14px 16px;
+  transition: border-color 0.18s;
+}
+.pf-addr-item--default {
+  border-color: rgba(124,58,237,0.25);
+  background: rgba(124,58,237,0.03);
+}
+
+.pf-addr-item__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(255,59,122,0.07));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.pf-addr-item__icon svg {
+  width: 17px;
+  height: 17px;
+  stroke: #7c3aed;
+}
+
+.pf-addr-item__body { flex: 1; min-width: 0; }
+
+.pf-addr-item__top {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 3px;
+}
+
+.pf-addr-item__label {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #1a1a2e;
+}
+
+.pf-addr-item__default-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #7c3aed;
+  background: rgba(124,58,237,0.1);
+  border: 1px solid rgba(124,58,237,0.2);
+  padding: 2px 8px;
+  border-radius: 100px;
+  letter-spacing: 0.03em;
+}
+
+.pf-addr-item__text {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 500;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.pf-addr-item__delete {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  border: 1.5px solid #fee2e2;
+  background: #fff5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+  margin-top: 2px;
+}
+.pf-addr-item__delete svg { width: 14px; height: 14px; stroke: #ef4444; }
+.pf-addr-item__delete:hover { background: #fee2e2; border-color: #ef4444; }
 
 /* ══════════════════════════════════════════
    QUICK LINKS
@@ -440,4 +638,5 @@
   .pf-hero__avatar { width: 80px; height: 80px; font-size: 30px; }
   .pf-card { padding: 20px 16px 8px; }
   .pf-card__head { flex-direction: column; align-items: flex-start; }
+  .pf-addr-form__group--half { flex: 1 1 100%; }
 }
