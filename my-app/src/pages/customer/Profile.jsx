@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "../../components/customer/Header";
 import "./Profile.css";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 /* ══════════════════════════════════════════
    HELPERS
@@ -51,7 +51,7 @@ export default function Profile() {
 
   async function fetchProfile() {
     try {
-      const res  = await fetch(`${API}/profile`, {
+      const res  = await fetch(`${API_URL}/api/profile`, {
         headers: { Authorization: `Bearer ${getToken()}` },
       });
       const data = await res.json();
@@ -68,7 +68,7 @@ export default function Profile() {
   async function handleSave() {
     setSaving(true);
     try {
-      const res  = await fetch(`${API}/profile`, {
+      const res  = await fetch(`${API_URL}/api/profile`, {
         method:  "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -100,7 +100,7 @@ export default function Profile() {
     }
     setAddrSaving(true);
     try {
-      const res  = await fetch(`${API}/profile/address`, {
+      const res  = await fetch(`${API_URL}/api/profile/address`, {
         method:  "POST",
         headers: {
           "Content-Type": "application/json",
@@ -130,7 +130,7 @@ export default function Profile() {
   /* ── Delete delivery address ── */
   async function handleDeleteAddress(addressId) {
     try {
-      const res  = await fetch(`${API}/profile/address/${addressId}`, {
+      const res  = await fetch(`${API_URL}/api/profile/address/${addressId}`, {
         method:  "DELETE",
         headers: { Authorization: `Bearer ${getToken()}` },
       });
