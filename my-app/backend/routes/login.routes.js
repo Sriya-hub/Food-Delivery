@@ -3,7 +3,6 @@ const bcrypt  = require("bcryptjs");
 const jwt     = require("jsonwebtoken");
 
 const router  = express.Router();
-
 const User    = require("../models/User");
 
 /* =========================
@@ -37,7 +36,6 @@ router.post("/login", async (req, res) => {
   try {
 
     console.log("✅ LOGIN API HIT");
-
     console.log("BODY:", req.body);
 
     const { email, password } = req.body;
@@ -127,7 +125,7 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign(
 
       {
-        id: user._id,
+        id:   user._id,
         role: user.role
       },
 
@@ -141,6 +139,11 @@ router.post("/login", async (req, res) => {
 
     /* =========================
        SUCCESS RESPONSE
+       Include phoneNumber and
+       deliveryAddresses so that
+       localStorage has full profile
+       data immediately after login —
+       no extra fetch required.
     ========================= */
 
     return res.status(200).json({
@@ -153,15 +156,23 @@ router.post("/login", async (req, res) => {
 
       user: {
 
-        _id: user._id,
+        _id:   user._id,
 
-        name: user.name,
+        name:  user.name,
 
         email: user.email,
 
-        role: user.role,
+        role:  user.role,
 
-        isBlocked: user.isBlocked,
+        /* contact & addresses */
+        phoneNumber:
+          user.phoneNumber || "",
+
+        deliveryAddresses:
+          user.deliveryAddresses || [],
+
+        /* status flags */
+        isBlocked:  user.isBlocked,
 
         isApproved: user.isApproved,
 
