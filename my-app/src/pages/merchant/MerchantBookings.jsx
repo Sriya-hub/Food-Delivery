@@ -301,7 +301,6 @@ export default function MerchantBookings() {
       <MerchantSidebar
         activeTab="bookings"
         setActiveTab={(tab) => {
-          // Map tab ids to their routes
           const routes = {
             home:      "/merchant/dashboard",
             foods:     "/merchant/foods",
