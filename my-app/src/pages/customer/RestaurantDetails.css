@@ -116,6 +116,16 @@
 }
 .rd-btn-ghost:hover { background: rgba(255,255,255,.16); }
 
+
+.rd-avail { display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px; font-size:13px; margin-bottom:12px; }
+.rd-avail--ok   { background:#f0fdf4; color:#16a34a; }
+.rd-avail--full { background:#fef2f2; color:#dc2626; }
+.rd-modal__done--full .rd-done-icon { filter: grayscale(1); }
+.rd-modal__done-actions { display:flex; gap:10px; justify-content:center; margin-top:16px; }
+.rd-modal__info-bar { display:flex; flex-wrap:wrap; gap:12px; padding:10px 0 16px; border-bottom:1px solid #f0f0f0; margin-bottom:16px; font-size:12px; color:#888; }
+.rd-modal__info-bar span { display:flex; align-items:center; gap:5px; }
+.rd-modal__sub { font-size:13px; color:#888; margin-top:6px; }
+
 /* ══════════════════ MAIN ══════════════════ */
 .rd-main { padding: 44px 64px 72px; max-width: 1440px; margin: 0 auto; }
 .rd-section { margin-bottom: 56px; }

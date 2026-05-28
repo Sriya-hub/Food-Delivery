@@ -9,7 +9,7 @@ const User    = require("../models/User");
 ========================= */
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");          // make sure this folder exists
+    cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
     const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
@@ -19,7 +19,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 },   // 5 MB max
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = /jpeg|jpg|png|webp/;
     if (allowed.test(path.extname(file.originalname).toLowerCase())) {
@@ -35,7 +35,7 @@ const upload = multer({
 ========================= */
 router.put(
   "/register/:id",
-  upload.single("restaurantImage"),   // ← handles the file field
+  upload.single("restaurantImage"),
   async (req, res) => {
     try {
       const user = await User.findById(req.params.id);
@@ -44,7 +44,6 @@ router.put(
         return res.status(404).json({ success: false, message: "User not found" });
       }
 
-      /* TEXT FIELDS */
       user.restaurantName    = req.body.restaurantName;
       user.phoneNumber       = req.body.phoneNumber;
       user.restaurantAddress = req.body.restaurantAddress;
@@ -52,12 +51,10 @@ router.put(
       user.openingTime       = req.body.openingTime;
       user.closingTime       = req.body.closingTime;
 
-      /* IMAGE — save relative path if uploaded */
       if (req.file) {
         user.restaurantImage = `/uploads/${req.file.filename}`;
       }
 
-      /* STATUS */
       user.registrationCompleted = true;
       user.isApproved            = false;
 
@@ -85,7 +82,9 @@ router.get("/approved-restaurants", async (req, res) => {
       registrationCompleted: true,
       isApproved: true,
     })
-      .select("_id restaurantName restaurantType restaurantAddress openingTime closingTime phoneNumber restaurantImage")
+      .select(
+        "_id restaurantName restaurantType restaurantAddress openingTime closingTime phoneNumber restaurantImage tableReservationEnabled" // ✅ added
+      )
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -105,7 +104,7 @@ router.get("/approved-restaurants", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select(
-      "_id restaurantName restaurantType restaurantAddress openingTime closingTime phoneNumber restaurantImage isApproved"
+      "_id restaurantName restaurantType restaurantAddress openingTime closingTime phoneNumber restaurantImage isApproved tableReservationEnabled" // ✅ added
     );
 
     if (!user) {
