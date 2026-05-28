@@ -25,6 +25,7 @@ const CAT_EMOJI = {
   both: "🍽", veg: "🥦",
   default: "🍽",
 };
+
 const getEmoji = (label = "") =>
   CAT_EMOJI[label.toLowerCase()] || CAT_EMOJI.default;
 
@@ -61,10 +62,13 @@ function CartToast({ item, onClose }) {
     const t = setTimeout(onClose, 2500);
     return () => clearTimeout(t);
   }, [onClose]);
+
   return (
     <div className="cart-toast">
       <span>🛒</span>
-      <span><strong>{item.name}</strong> added to cart!</span>
+      <span>
+        <strong>{item.name}</strong> added to cart!
+      </span>
     </div>
   );
 }
@@ -72,22 +76,27 @@ function CartToast({ item, onClose }) {
 /* ── Restaurant Card ── */
 function RestaurantCard({ r, onBook }) {
   const navigate = useNavigate();
-  const open = isOpen(r.openingTime, r.closingTime);
-  const cuisine = r.restaurantType || "";
+  const open     = isOpen(r.openingTime, r.closingTime);
+  const cuisine  = r.restaurantType || "";
 
   return (
     <div className="r-card" onClick={() => navigate(`/restaurant/${r._id}`)}>
+      {/* Image */}
       <div className="r-card__img">
-        {r.restaurantImage
-          ? <img
-              src={r.restaurantImage.startsWith("http")
+        {r.restaurantImage ? (
+          <img
+            src={
+              r.restaurantImage.startsWith("http")
                 ? r.restaurantImage
-                : `${API_URL}/${r.restaurantImage.replace(/^\//, "")}`}
-              alt={r.restaurantName}
-              loading="lazy"
-            />
-          : <span className="r-card__img-placeholder">🍽</span>
-        }
+                : `${API_URL}/${r.restaurantImage.replace(/^\//, "")}`
+            }
+            alt={r.restaurantName}
+            loading="lazy"
+          />
+        ) : (
+          <span className="r-card__img-placeholder">🍽</span>
+        )}
+
         {open !== null && (
           <span className={`badge ${open ? "badge--open" : "badge--closed"}`}>
             <span className="badge-dot" />
@@ -96,6 +105,7 @@ function RestaurantCard({ r, onBook }) {
         )}
       </div>
 
+      {/* Body */}
       <div className="r-card__body">
         <div className="r-card__top">
           <h3 className="r-card__name">{r.restaurantName}</h3>
@@ -109,9 +119,18 @@ function RestaurantCard({ r, onBook }) {
         )}
 
         <div className="r-card__hours">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <circle cx="12" cy="12" r="10" />
-            <path d="M12 6v6l4 2" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M12 6v6l4 2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
           <div>
             <span className="r-card__hours-label">Hours</span>
@@ -122,7 +141,12 @@ function RestaurantCard({ r, onBook }) {
         </div>
 
         <p className="r-card__address">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
             <circle cx="12" cy="9" r="2.5" />
           </svg>
@@ -131,19 +155,26 @@ function RestaurantCard({ r, onBook }) {
 
         <div className="r-card__footer">
           <span className="r-card__delivery">Free delivery</span>
-          <button
-            className="btn-book"
-            onClick={e => { e.stopPropagation(); onBook(r); }}
-          >
-            Reserve Table
-          </button>
+
+          {/* ✅ Only show "Reserve Table" when the restaurant has enabled it */}
+          {r.tableReservationEnabled && (
+            <button
+              className="btn-book"
+              onClick={(e) => {
+                e.stopPropagation();
+                onBook(r);
+              }}
+            >
+              Reserve Table
+            </button>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-/* ── Food Item Card (shown under Top Restaurants) ── */
+/* ── Food Item Card (shown under Popular Dishes) ── */
 function FoodItemCard({ item, onAddToCart, isClosed }) {
   const navigate = useNavigate();
   const [adding, setAdding] = useState(false);
@@ -168,14 +199,19 @@ function FoodItemCard({ item, onAddToCart, isClosed }) {
       onClick={() => navigate(`/restaurant/${item.restaurantId}`)}
     >
       <div className="food-card__img">
-        {imgSrc
-          ? <img src={imgSrc} alt={item.name} loading="lazy" />
-          : <span className="food-card__placeholder">{getEmoji(item.category || "")}</span>
-        }
+        {imgSrc ? (
+          <img src={imgSrc} alt={item.name} loading="lazy" />
+        ) : (
+          <span className="food-card__placeholder">
+            {getEmoji(item.category || "")}
+          </span>
+        )}
         {item.category && (
           <span className="food-card__cat-badge">{item.category}</span>
         )}
-        {isClosed && <span className="food-card__closed-tag">Closed</span>}
+        {isClosed && (
+          <span className="food-card__closed-tag">Closed</span>
+        )}
       </div>
 
       <div className="food-card__body">
@@ -184,8 +220,19 @@ function FoodItemCard({ item, onAddToCart, isClosed }) {
           <p className="food-card__desc">{item.description}</p>
         )}
         <p className="food-card__restaurant">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12">
-            <path d="M3 11l19-9-9 19-2-8-8-2z" strokeLinecap="round" strokeLinejoin="round" />
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            width="12"
+            height="12"
+          >
+            <path
+              d="M3 11l19-9-9 19-2-8-8-2z"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
           {item.restaurantName}
         </p>
@@ -194,7 +241,9 @@ function FoodItemCard({ item, onAddToCart, isClosed }) {
             {item.price ? `₹${item.price}` : "—"}
           </span>
           <button
-            className={`btn-cart ${adding ? "btn-cart--added" : ""} ${isClosed ? "btn-cart--disabled" : ""}`}
+            className={`btn-cart ${adding ? "btn-cart--added" : ""} ${
+              isClosed ? "btn-cart--disabled" : ""
+            }`}
             onClick={handleCart}
             disabled={isClosed}
           >
@@ -225,22 +274,33 @@ function MenuItemCard({ item, onAddToCart, isClosed }) {
       onClick={() => navigate(`/restaurant/${item.restaurantId}`)}
     >
       <div className="menu-item-card__img">
-        {item.image
-          ? <img
-              src={item.image.startsWith("http") ? item.image : `${API_URL}/${item.image.replace(/^\//, "")}`}
-              alt={item.name}
-              loading="lazy"
-            />
-          : <span className="menu-item-card__placeholder">{getEmoji(item.category || "")}</span>
-        }
+        {item.image ? (
+          <img
+            src={
+              item.image.startsWith("http")
+                ? item.image
+                : `${API_URL}/${item.image.replace(/^\//, "")}`
+            }
+            alt={item.name}
+            loading="lazy"
+          />
+        ) : (
+          <span className="menu-item-card__placeholder">
+            {getEmoji(item.category || "")}
+          </span>
+        )}
       </div>
       <div className="menu-item-card__body">
         <p className="menu-item-card__name">{item.name}</p>
         <p className="menu-item-card__restaurant">{item.restaurantName}</p>
         <div className="menu-item-card__footer">
-          {item.price && <span className="menu-item-card__price">₹{item.price}</span>}
+          {item.price && (
+            <span className="menu-item-card__price">₹{item.price}</span>
+          )}
           <button
-            className={`btn-cart btn-cart--sm ${adding ? "btn-cart--added" : ""} ${isClosed ? "btn-cart--disabled" : ""}`}
+            className={`btn-cart btn-cart--sm ${
+              adding ? "btn-cart--added" : ""
+            } ${isClosed ? "btn-cart--disabled" : ""}`}
             onClick={handleCart}
             disabled={isClosed}
           >
@@ -254,10 +314,11 @@ function MenuItemCard({ item, onAddToCart, isClosed }) {
 
 /* ── Booking Modal ── */
 function BookingModal({ restaurant, onClose }) {
-  const [form, setForm] = useState({ date: "", time: "", guests: 2, note: "" });
-  const [done, setDone] = useState(false);
+  const [form, setForm]       = useState({ date: "", time: "", guests: 2, note: "" });
+  const [done, setDone]       = useState(false);
   const [loading, setLoading] = useState(false);
-  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
   const submit = async () => {
     if (!form.date || !form.time) return;
@@ -266,51 +327,92 @@ function BookingModal({ restaurant, onClose }) {
       await axios.post(
         `${API_URL}/api/reservations`,
         { restaurantId: restaurant._id, ...form },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
       setDone(true);
-    } catch { setDone(true); }
-    finally { setLoading(false); }
+    } catch {
+      setDone(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
         {done ? (
           <div className="modal__done">
             <span>🎉</span>
             <h3>Table Reserved!</h3>
-            <p>We'll confirm your booking at <strong>{restaurant.restaurantName}</strong> shortly.</p>
-            <button className="btn-primary" onClick={onClose}>Done</button>
+            <p>
+              We'll confirm your booking at{" "}
+              <strong>{restaurant.restaurantName}</strong> shortly.
+            </p>
+            <button className="btn-primary" onClick={onClose}>
+              Done
+            </button>
           </div>
         ) : (
           <>
             <div className="modal__head">
               <h3>Reserve at {restaurant.restaurantName}</h3>
-              <button className="modal__close" onClick={onClose}>✕</button>
+              <button className="modal__close" onClick={onClose}>
+                ✕
+              </button>
             </div>
+
             <div className="modal__fields">
-              <label>Date
-                <input type="date" value={form.date}
+              <label>
+                Date
+                <input
+                  type="date"
+                  value={form.date}
                   min={new Date().toISOString().split("T")[0]}
-                  onChange={e => set("date", e.target.value)} />
+                  onChange={(e) => set("date", e.target.value)}
+                />
               </label>
-              <label>Time
-                <input type="time" value={form.time}
-                  onChange={e => set("time", e.target.value)} />
+
+              <label>
+                Time
+                <input
+                  type="time"
+                  value={form.time}
+                  onChange={(e) => set("time", e.target.value)}
+                />
               </label>
-              <label>Guests
-                <select value={form.guests} onChange={e => set("guests", +e.target.value)}>
-                  {[1,2,3,4,5,6,7,8].map(n => <option key={n}>{n}</option>)}
+
+              <label>
+                Guests
+                <select
+                  value={form.guests}
+                  onChange={(e) => set("guests", +e.target.value)}
+                >
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                    <option key={n}>{n}</option>
+                  ))}
                 </select>
               </label>
-              <label className="modal__fields--full">Special request
-                <textarea rows={2} placeholder="Allergies, occasion…"
-                  value={form.note} onChange={e => set("note", e.target.value)} />
+
+              <label className="modal__fields--full">
+                Special request
+                <textarea
+                  rows={2}
+                  placeholder="Allergies, occasion…"
+                  value={form.note}
+                  onChange={(e) => set("note", e.target.value)}
+                />
               </label>
             </div>
-            <button className="btn-primary"
-              disabled={loading || !form.date || !form.time} onClick={submit}>
+
+            <button
+              className="btn-primary"
+              disabled={loading || !form.date || !form.time}
+              onClick={submit}
+            >
               {loading ? "Booking…" : "Confirm Reservation"}
             </button>
           </>
@@ -324,21 +426,26 @@ function BookingModal({ restaurant, onClose }) {
    MAIN HOME PAGE
 ══════════════════════════════════════ */
 export default function Home() {
-  const [restaurants, setRestaurants]   = useState([]);
-  const [filtered, setFiltered]         = useState([]);
-  const [foodItems, setFoodItems]       = useState([]);   // ← all food items for grid
-  const [menuItems, setMenuItems]       = useState([]);   // ← recommended horizontal scroll
-  const [loading, setLoading]           = useState(true);
-  const [foodLoading, setFoodLoading]   = useState(true);
-  const [search, setSearch]             = useState("");
-  const [activeCategory, setActiveCat]  = useState("");
-  const [booking, setBooking]           = useState(null);
-  const [mounted, setMounted]           = useState(false);
-  const [cart, setCart]                 = useState(() => {
-    try { return JSON.parse(localStorage.getItem("cart") || "[]"); } catch { return []; }
+  const [restaurants, setRestaurants] = useState([]);
+  const [filtered, setFiltered]       = useState([]);
+  const [foodItems, setFoodItems]     = useState([]);
+  const [menuItems, setMenuItems]     = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [foodLoading, setFoodLoading] = useState(true);
+  const [search, setSearch]           = useState("");
+  const [activeCategory, setActiveCat]= useState("");
+  const [booking, setBooking]         = useState(null);
+  const [mounted, setMounted]         = useState(false);
+  const [toast, setToast]             = useState(null);
+  const [openMap, setOpenMap]         = useState({});
+
+  const [cart, setCart] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("cart") || "[]");
+    } catch {
+      return [];
+    }
   });
-  const [toast, setToast]               = useState(null);
-  const [openMap, setOpenMap]           = useState({});   // restaurantId → true/false
 
   useEffect(() => {
     setTimeout(() => setMounted(true), 50);
@@ -351,10 +458,12 @@ export default function Home() {
   }, [cart]);
 
   const addToCart = (item) => {
-    setCart(prev => {
-      const existing = prev.find(c => c._id === item._id);
+    setCart((prev) => {
+      const existing = prev.find((c) => c._id === item._id);
       if (existing) {
-        return prev.map(c => c._id === item._id ? { ...c, quantity: c.quantity + 1 } : c);
+        return prev.map((c) =>
+          c._id === item._id ? { ...c, quantity: c.quantity + 1 } : c
+        );
       }
       return [...prev, { ...item, quantity: 1 }];
     });
@@ -371,9 +480,9 @@ export default function Home() {
       setRestaurants(list);
       setFiltered(list);
 
-      // Build merchantId → restaurant map
+      // Build merchantId → restaurantName map
       const merchantMap = {};
-      list.forEach(r => {
+      list.forEach((r) => {
         merchantMap[r._id] = r.restaurantName;
         if (r.merchantId) merchantMap[r.merchantId] = r.restaurantName;
       });
@@ -382,7 +491,7 @@ export default function Home() {
       const oMap = {};
       const now = new Date();
       const cur = now.getHours() * 60 + now.getMinutes();
-      list.forEach(r => {
+      list.forEach((r) => {
         if (r.openingTime && r.closingTime) {
           const [oh, om] = r.openingTime.split(":").map(Number);
           const [ch, cm] = r.closingTime.split(":").map(Number);
@@ -393,36 +502,30 @@ export default function Home() {
       });
       setOpenMap(oMap);
 
-      // Fetch all food items from the dedicated endpoint
+      // Fetch all food items
       try {
         setFoodLoading(true);
         const foodRes = await axios.get(
           `${API_URL}/api/merchant-food/all-foods`
         );
-        const foods = (foodRes.data.foods || []).map(f => ({
+        const foods = (foodRes.data.foods || []).map((f) => ({
           ...f,
           restaurantName: merchantMap[f.merchantId] || "Unknown restaurant",
-          // Navigate to the restaurant page; use merchantId as restaurantId
-          restaurantId: f.merchantId,
+          restaurantId:   f.merchantId,
         }));
 
-        // Show all food items in grid section
         setFoodItems(foods);
-
-        // Shuffle a subset for "Recommended" horizontal scroll
-        setMenuItems(
-          [...foods].sort(() => Math.random() - 0.5).slice(0, 12)
-        );
+        setMenuItems([...foods].sort(() => Math.random() - 0.5).slice(0, 12));
       } catch (foodErr) {
         console.warn("Could not load food items:", foodErr);
-        // Fallback: try to pull items embedded in restaurant objects
+        // Fallback: pull items embedded in restaurant objects
         const items = [];
-        list.forEach(r => {
+        list.forEach((r) => {
           const foods = r.foodItems || r.menuItems || r.menu || [];
-          foods.slice(0, 3).forEach(item => {
+          foods.slice(0, 3).forEach((item) => {
             items.push({
               ...item,
-              restaurantId: r._id,
+              restaurantId:   r._id,
               restaurantName: r.restaurantName,
             });
           });
@@ -443,13 +546,16 @@ export default function Home() {
   const categories = [
     ...new Set(
       restaurants
-        .map(r => r.restaurantType)
+        .map((r) => r.restaurantType)
         .filter(Boolean)
-        .map(t => t.toString().trim())
-    )
+        .map((t) => t.toString().trim())
+    ),
   ].slice(0, 14);
 
-  const handleSearch = (q) => { setSearch(q); applyFilter(q, activeCategory); };
+  const handleSearch = (q) => {
+    setSearch(q);
+    applyFilter(q, activeCategory);
+  };
 
   const handleCategory = (cat) => {
     const next = activeCategory === cat ? "" : cat;
@@ -459,14 +565,17 @@ export default function Home() {
 
   const applyFilter = (q, cat) => {
     let list = restaurants;
-    if (q) list = list.filter(r =>
-      r.restaurantName?.toLowerCase().includes(q.toLowerCase()) ||
-      r.restaurantType?.toLowerCase().includes(q.toLowerCase()) ||
-      r.restaurantAddress?.toLowerCase().includes(q.toLowerCase())
-    );
-    if (cat) list = list.filter(r =>
-      r.restaurantType?.toLowerCase().includes(cat.toLowerCase())
-    );
+    if (q)
+      list = list.filter(
+        (r) =>
+          r.restaurantName?.toLowerCase().includes(q.toLowerCase()) ||
+          r.restaurantType?.toLowerCase().includes(q.toLowerCase()) ||
+          r.restaurantAddress?.toLowerCase().includes(q.toLowerCase())
+      );
+    if (cat)
+      list = list.filter((r) =>
+        r.restaurantType?.toLowerCase().includes(cat.toLowerCase())
+      );
     setFiltered(list);
   };
 
@@ -479,39 +588,64 @@ export default function Home() {
       {/* ── HERO ── */}
       <section className="hero">
         <div className="floating-foods" aria-hidden="true">
-          {["🍕","🍣","🍔","🌮","🥗","🍜","🧁","🍛"].map((e, i) => (
-            <span key={i} className="food-bubble" style={{ "--i": i }}>{e}</span>
+          {["🍕", "🍣", "🍔", "🌮", "🥗", "🍜", "🧁", "🍛"].map((e, i) => (
+            <span key={i} className="food-bubble" style={{ "--i": i }}>
+              {e}
+            </span>
           ))}
         </div>
+
         <div className="hero__content">
           <div className="hero__text">
             <div className="hero__badge">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
               The #1 food &amp; dining platform
             </div>
+
             <h1>
-              Great food,<br />
+              Great food,
+              <br />
               <em>right at your door.</em>
             </h1>
             <p>Order delivery, dine-in, or book a table — all in one place.</p>
+
             <div className="hero__search">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35" strokeLinecap="round"/>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" strokeLinecap="round" />
               </svg>
               <input
                 placeholder="Search restaurants, cuisines…"
                 value={search}
-                onChange={e => handleSearch(e.target.value)}
+                onChange={(e) => handleSearch(e.target.value)}
               />
               {search && (
-                <button className="hero__search-clear" onClick={() => handleSearch("")}>✕</button>
+                <button
+                  className="hero__search-clear"
+                  onClick={() => handleSearch("")}
+                >
+                  ✕
+                </button>
               )}
             </div>
           </div>
+
           <div className="hero__stats">
-            {STATS.map(s => (
+            {STATS.map((s) => (
               <div key={s.label} className="hero__stat">
                 <strong>{s.value}</strong>
                 <span>{s.label}</span>
@@ -526,13 +660,16 @@ export default function Home() {
         <section className="section">
           <h2 className="section__title">What are you craving?</h2>
           <div className="categories">
-            {categories.map(c => (
+            {categories.map((c) => (
               <button
                 key={c}
-                className={`cat-chip ${activeCategory === c ? "cat-chip--active" : ""}`}
+                className={`cat-chip ${
+                  activeCategory === c ? "cat-chip--active" : ""
+                }`}
                 onClick={() => handleCategory(c)}
               >
-                <span>{getEmoji(c)}</span>{c}
+                <span>{getEmoji(c)}</span>
+                {c}
               </button>
             ))}
           </div>
@@ -552,7 +689,9 @@ export default function Home() {
 
         {loading ? (
           <div className="grid">
-            {[...Array(6)].map((_, i) => <div key={i} className="r-skeleton" />)}
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="r-skeleton" />
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="empty">
@@ -562,14 +701,14 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid">
-            {filtered.map(r => (
+            {filtered.map((r) => (
               <RestaurantCard key={r._id} r={r} onBook={setBooking} />
             ))}
           </div>
         )}
       </section>
 
-      {/* ── FOOD ITEMS GRID (below Top Restaurants) ── */}
+      {/* ── POPULAR DISHES GRID ── */}
       <section className="section">
         <div className="section__head">
           <div>
@@ -583,7 +722,9 @@ export default function Home() {
 
         {foodLoading ? (
           <div className="food-grid">
-            {[...Array(8)].map((_, i) => <div key={i} className="food-skeleton" />)}
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="food-skeleton" />
+            ))}
           </div>
         ) : foodItems.length === 0 ? (
           <div className="empty">
@@ -594,24 +735,36 @@ export default function Home() {
         ) : (
           <div className="food-grid">
             {foodItems.map((item, i) => (
-              <FoodItemCard key={item._id || i} item={item} onAddToCart={addToCart} isClosed={openMap[item.restaurantId] === false} />
+              <FoodItemCard
+                key={item._id || i}
+                item={item}
+                onAddToCart={addToCart}
+                isClosed={openMap[item.restaurantId] === false}
+              />
             ))}
           </div>
         )}
       </section>
 
-      {/* ── RECOMMENDED MENU ITEMS (horizontal scroll) ── */}
+      {/* ── RECOMMENDED (horizontal scroll) ── */}
       {menuItems.length > 0 && (
         <section className="section section--dark-bg">
           <div className="section__head">
             <div>
               <h2 className="section__title">Recommended for you</h2>
-              <p className="section__sub">Hand-picked dishes from top restaurants</p>
+              <p className="section__sub">
+                Hand-picked dishes from top restaurants
+              </p>
             </div>
           </div>
           <div className="menu-scroll">
             {menuItems.map((item, i) => (
-              <MenuItemCard key={i} item={item} onAddToCart={addToCart} isClosed={openMap[item.restaurantId] === false} />
+              <MenuItemCard
+                key={i}
+                item={item}
+                onAddToCart={addToCart}
+                isClosed={openMap[item.restaurantId] === false}
+              />
             ))}
           </div>
         </section>
@@ -628,19 +781,22 @@ export default function Home() {
             <a href="/privacy">Privacy</a>
           </div>
           <p className="address-strip__addr">
-            📍 Infotact Solutions &amp; Co., Bengaluru, Karnataka 560001 · support@foodie.in
+            📍 Infotact Solutions &amp; Co., Bengaluru, Karnataka 560001 ·
+            support@foodie.in
           </p>
         </div>
       </footer>
 
+      {/* ── BOOKING MODAL ── */}
       {booking && (
-        <BookingModal restaurant={booking} onClose={() => setBooking(null)} />
+        <BookingModal
+          restaurant={booking}
+          onClose={() => setBooking(null)}
+        />
       )}
 
       {/* ── CART TOAST ── */}
-      {toast && (
-        <CartToast item={toast} onClose={() => setToast(null)} />
-      )}
+      {toast && <CartToast item={toast} onClose={() => setToast(null)} />}
     </div>
   );
 }
