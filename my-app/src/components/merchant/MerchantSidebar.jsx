@@ -2,14 +2,19 @@ import { useNavigate } from "react-router-dom";
 import "./MerchantSidebar.css";
 
 const MENUS = [
-  { id: "home",      label: "Home",       icon: "🏠", badge: null },
-  { id: "foods",     label: "Food Items", icon: "🍽",  badge: null },
-  { id: "orders",    label: "Orders",     icon: "📦", badge: "New" },
-  { id: "analytics", label: "Analytics",  icon: "📊", badge: null },
-  { id: "settings",  label: "Settings",   icon: "⚙️", badge: null },
+  { id: "home",      label: "Home",       icon: "🏠", badge: null,  route: null },
+  { id: "foods",     label: "Food Items", icon: "🍽",  badge: null,  route: null },
+  { id: "orders",    label: "Orders",     icon: "📦", badge: "New", route: null },
+  { id: "bookings",  label: "Bookings",   icon: "📅", badge: null,  route: "/merchant/bookings" },
+  { id: "analytics", label: "Analytics",  icon: "📊", badge: null,  route: null },
+  { id: "settings",  label: "Settings",   icon: "⚙️", badge: null,  route: null },
 ];
 
-export default function MerchantSidebar({ activeTab, setActiveTab, merchantName = "My Restaurant" }) {
+export default function MerchantSidebar({
+  activeTab,
+  setActiveTab,
+  merchantName = "My Restaurant",
+}) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -19,9 +24,17 @@ export default function MerchantSidebar({ activeTab, setActiveTab, merchantName 
     navigate("/login");
   };
 
+  const handleMenu = (m) => {
+    if (m.route) {
+      navigate(m.route);
+    } else {
+      setActiveTab(m.id);
+    }
+  };
+
   const initials = merchantName
     .split(" ")
-    .map(w => w[0])
+    .map((w) => w[0])
     .join("")
     .slice(0, 2)
     .toUpperCase();
@@ -45,20 +58,18 @@ export default function MerchantSidebar({ activeTab, setActiveTab, merchantName 
           <p className="ms__merchant-role">Owner · Active</p>
         </div>
         <span className="ms__online" title="Online" />
-        
       </div>
 
       {/* NAV */}
       <p className="ms__section-label">Navigation</p>
       <nav className="ms__nav">
-        {MENUS.map(m => (
+        {MENUS.map((m) => (
           <button
             key={m.id}
             className={`ms__item ${activeTab === m.id ? "ms__item--active" : ""}`}
-            onClick={() => setActiveTab(m.id)}
+            onClick={() => handleMenu(m)}
           >
             <span className="ms__icon">{m.icon}</span>
-            
             <span className="ms__label">{m.label}</span>
             {m.badge && <span className="ms__badge">{m.badge}</span>}
             {activeTab === m.id && !m.badge && <span className="ms__dot" />}
@@ -69,7 +80,7 @@ export default function MerchantSidebar({ activeTab, setActiveTab, merchantName 
       {/* DIVIDER */}
       <div className="ms__divider" />
 
-      {/* BOTTOM — logout only */}
+      {/* BOTTOM */}
       <div className="ms__bottom">
         <button className="ms__logout" onClick={handleLogout}>
           <span className="ms__icon">🚪</span>

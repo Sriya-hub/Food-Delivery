@@ -1,170 +1,96 @@
 const express = require("express");
-
-const cors = require("cors");
-
-const dotenv = require("dotenv");
-
-const path = require("path");
+const cors    = require("cors");
+const dotenv  = require("dotenv");
+const path    = require("path");
 
 /* =========================
    DATABASE
 ========================= */
-
-const connectDB =
-  require("./config/db");
+const connectDB = require("./config/db");
 
 /* =========================
    LOAD ENV
 ========================= */
-
 dotenv.config();
 
 /* =========================
    CONNECT DATABASE
 ========================= */
-
 connectDB();
 
 /* =========================
    EXPRESS APP
 ========================= */
-
 const app = express();
 
 /* =========================
    MIDDLEWARE
 ========================= */
-
 app.use(cors());
-
 app.use(express.json());
-
-app.use(express.urlencoded({
-  extended: true
-}));
+app.use(express.urlencoded({ extended: true }));
 
 /* =========================
    STATIC FOLDER
 ========================= */
-
 app.use(
   "/uploads",
-
-  express.static(
-    path.join(__dirname, "uploads")
-  )
+  express.static(path.join(__dirname, "uploads"))
 );
 
 /* =========================
    ROUTES
 ========================= */
 
-/* AUTH ROUTES */
+/* AUTH */
+app.use("/api/auth", require("./routes/signup.routes"));
+app.use("/api/auth", require("./routes/login.routes"));
 
-app.use(
-  "/api/auth",
+/* ADMIN */
+app.use("/api/admin", require("./routes/admin.routes"));
 
-  require("./routes/signup.routes")
-);
+/* MERCHANT */
+app.use("/api/merchant", require("./routes/merchant.routes"));
 
-app.use(
-  "/api/auth",
+/* MERCHANT FOOD */
+app.use("/api/merchant-food", require("./routes/merchantfood.routes"));
 
-  require("./routes/login.routes")
-);
+/* PAYMENT */
+app.use("/api/payment", require("./routes/payment.routes"));
 
-/* ADMIN ROUTES */
+/* MERCHANT SETTINGS */
+app.use("/api/merchant-settings", require("./routes/merchantsettings.routes"));
 
-app.use(
-  "/api/admin",
+/* ORDERS */
+app.use("/api/orders", require("./routes/orders.routes"));
 
-  require("./routes/admin.routes")
-);
+/* CHECKOUT */
+app.use("/api/checkout", require("./routes/checkout.routes"));
 
-/* MERCHANT ROUTES */
+/* RESERVATIONS ✅ */
+app.use("/api/reservations", require("./routes/reservations.routes"));
 
-app.use(
-  "/api/merchant",
-
-  require("./routes/merchant.routes")
-);
-
-/* MERCHANT FOOD ROUTES */
-
-app.use(
-  "/api/merchant-food",
-
-  require("./routes/merchantfood.routes")
-);
-
-app.use(
-  "/api/payment",
-
-  require("./routes/payment.routes")
-);
-
-app.use(
-  "/api/merchant-settings",
-
-  require("./routes/merchantsettings.routes")
-);
-
-app.use(
-  "/api/orders",
-
-  require("./routes/orders.routes")
-);
-
-app.use(
-  "/api/checkout",
-
-  require("./routes/checkout.routes")
-);
-
-/* PROFILE ROUTES */
-
-app.use(
-  "/api",
-
-  require("./routes/profile.routes")
-);
+/* PROFILE */
+app.use("/api", require("./routes/profile.routes"));
 
 /* =========================
    TEST ROUTE
 ========================= */
-
 app.get("/", (req, res) => {
-
-  res.send(
-    "OmniRetail Backend Running"
-  );
+  res.send("OmniRetail Backend Running");
 });
 
 /* =========================
    404 HANDLER
 ========================= */
-
 app.use((req, res) => {
-
-  res.status(404).json({
-
-    success: false,
-
-    message: "Route Not Found"
-
-  });
+  res.status(404).json({ success: false, message: "Route Not Found" });
 });
 
 /* =========================
    SERVER
 ========================= */
-
-const PORT =
-  process.env.PORT || 5000;
-
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-
-  console.log(
-    `Server Running On Port ${PORT}`
-  );
+  console.log(`Server Running On Port ${PORT}`);
 });
