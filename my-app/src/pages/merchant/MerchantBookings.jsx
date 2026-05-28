@@ -9,10 +9,10 @@ const API_URL = import.meta.env.VITE_API_URL;
 const STATUS_TABS = ["All", "Pending", "Confirmed", "Cancelled", "Completed"];
 
 const STATUS_META = {
-  pending:   { label: "Pending",   color: "#f59e0b", bg: "#fffbeb" },
-  confirmed: { label: "Confirmed", color: "#10b981", bg: "#f0fdf4" },
-  cancelled: { label: "Cancelled", color: "#ef4444", bg: "#fef2f2" },
-  completed: { label: "Completed", color: "#6366f1", bg: "#eef2ff" },
+  pending:   { label: "Pending",   color: "#b45309", bg: "#fef3c7" },
+  confirmed: { label: "Confirmed", color: "#047857", bg: "#d1fae5" },
+  cancelled: { label: "Cancelled", color: "#b91c1c", bg: "#fee2e2" },
+  completed: { label: "Completed", color: "#4338ca", bg: "#e0e7ff" },
 };
 
 function formatDate(d) {
@@ -36,7 +36,7 @@ function getInitials(name = "") {
    CANCEL REASON MODAL
 ══════════════════════════════ */
 function CancelModal({ booking, onConfirm, onClose }) {
-  const [reason, setReason] = useState("");
+  const [reason, setReason]   = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleConfirm = async () => {
@@ -72,9 +72,7 @@ function CancelModal({ booking, onConfirm, onClose }) {
         </label>
 
         <div className="mb-cancel-modal__actions">
-          <button className="mb-btn-ghost" onClick={onClose}>
-            Go Back
-          </button>
+          <button className="mb-btn-ghost" onClick={onClose}>Go Back</button>
           <button
             className="mb-btn-cancel-confirm"
             onClick={handleConfirm}
@@ -92,13 +90,14 @@ function CancelModal({ booking, onConfirm, onClose }) {
    BOOKING CARD
 ══════════════════════════════ */
 function BookingCard({ booking, onConfirm, onCancel }) {
-  const meta    = STATUS_META[booking.status] || STATUS_META.pending;
-  const canAct  = booking.status === "pending";
+  const meta       = STATUS_META[booking.status] || STATUS_META.pending;
+  const canAct     = booking.status === "pending";
   const canComplete = booking.status === "confirmed";
 
   return (
     <div className={`mb-card mb-card--${booking.status}`}>
-      {/* Left — customer info */}
+
+      {/* ── LEFT: customer info ── */}
       <div className="mb-card__customer">
         <div className="mb-card__avatar">
           {getInitials(booking.customerId?.name)}
@@ -109,7 +108,7 @@ function BookingCard({ booking, onConfirm, onCancel }) {
           </p>
           {booking.customerId?.email && (
             <p className="mb-card__contact">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                 <polyline points="22,6 12,13 2,6"/>
               </svg>
@@ -118,7 +117,7 @@ function BookingCard({ booking, onConfirm, onCancel }) {
           )}
           {booking.customerId?.phoneNumber && (
             <p className="mb-card__contact">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
               </svg>
               {booking.customerId.phoneNumber}
@@ -127,7 +126,7 @@ function BookingCard({ booking, onConfirm, onCancel }) {
         </div>
       </div>
 
-      {/* Middle — booking details */}
+      {/* ── MIDDLE: booking details ── */}
       <div className="mb-card__details">
         <div className="mb-card__detail-row">
           <span className="mb-card__detail-icon">📅</span>
@@ -150,25 +149,26 @@ function BookingCard({ booking, onConfirm, onCancel }) {
         {booking.cancelReason && (
           <div className="mb-card__cancel-reason">
             <span className="mb-card__detail-icon">⚠️</span>
-            <span>Cancelled: {booking.cancelReason}</span>
+            <span>{booking.cancelReason}</span>
           </div>
         )}
       </div>
 
-      {/* Right — status + actions */}
+      {/* ── RIGHT: status + actions ── */}
       <div className="mb-card__right">
-        <span
-          className="mb-card__status"
-          style={{ color: meta.color, background: meta.bg }}
-        >
-          {meta.label}
-        </span>
-
-        <p className="mb-card__booked-on">
-          Booked {new Date(booking.createdAt).toLocaleDateString("en-IN", {
-            day: "numeric", month: "short",
-          })}
-        </p>
+        <div className="mb-card__status-row">
+          <span
+            className="mb-card__status"
+            style={{ color: meta.color, background: meta.bg }}
+          >
+            {meta.label}
+          </span>
+          <p className="mb-card__booked-on">
+            {new Date(booking.createdAt).toLocaleDateString("en-IN", {
+              day: "numeric", month: "short",
+            })}
+          </p>
+        </div>
 
         <div className="mb-card__actions">
           {canAct && (
@@ -200,6 +200,7 @@ function BookingCard({ booking, onConfirm, onCancel }) {
           )}
         </div>
       </div>
+
     </div>
   );
 }
@@ -213,11 +214,11 @@ export default function MerchantBookings() {
   const merchantId   = localStorage.getItem("merchantId");
   const merchantName = localStorage.getItem("merchantName") || "My Restaurant";
 
-  const [bookings, setBookings]     = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [activeFilter, setFilter]   = useState("All");
-  const [cancelTarget, setCancelTarget] = useState(null); // booking to cancel
-  const [toast, setToast]           = useState(null);
+  const [bookings, setBookings]         = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [activeFilter, setFilter]       = useState("All");
+  const [cancelTarget, setCancelTarget] = useState(null);
+  const [toast, setToast]               = useState(null);
 
   useEffect(() => {
     if (!merchantId) { navigate("/login"); return; }
@@ -252,9 +253,7 @@ export default function MerchantBookings() {
         prev.map((b) => (b._id === id ? { ...b, status: overrideStatus } : b))
       );
       showToast(
-        overrideStatus === "completed"
-          ? "Booking marked as completed ✓"
-          : "Booking confirmed ✓",
+        overrideStatus === "completed" ? "Booking marked as completed ✓" : "Booking confirmed ✓",
         "success"
       );
     } catch {
@@ -272,9 +271,7 @@ export default function MerchantBookings() {
       );
       setBookings((prev) =>
         prev.map((b) =>
-          b._id === id
-            ? { ...b, status: "cancelled", cancelReason: reason }
-            : b
+          b._id === id ? { ...b, status: "cancelled", cancelReason: reason } : b
         )
       );
       setCancelTarget(null);
@@ -303,9 +300,7 @@ export default function MerchantBookings() {
   const filtered =
     activeFilter === "All"
       ? bookings
-      : bookings.filter(
-          (b) => b.status === activeFilter.toLowerCase()
-        );
+      : bookings.filter((b) => b.status === activeFilter.toLowerCase());
 
   return (
     <div className="mb-page">
@@ -321,12 +316,10 @@ export default function MerchantBookings() {
         <div className="mb-header">
           <div>
             <h1 className="mb-header__title">Table Reservations</h1>
-            <p className="mb-header__sub">
-              Manage all customer bookings for your restaurant
-            </p>
+            <p className="mb-header__sub">Manage all customer bookings for your restaurant</p>
           </div>
           <button className="mb-btn-refresh" onClick={fetchBookings}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="23 4 23 10 17 10"/>
               <polyline points="1 20 1 14 7 14"/>
               <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
@@ -380,9 +373,7 @@ export default function MerchantBookings() {
         {/* ── CONTENT ── */}
         {loading ? (
           <div className="mb-skeletons">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="mb-skeleton" />
-            ))}
+            {[1, 2, 3, 4].map((i) => <div key={i} className="mb-skeleton" />)}
           </div>
         ) : filtered.length === 0 ? (
           <div className="mb-empty">
@@ -420,9 +411,9 @@ export default function MerchantBookings() {
       {/* ── TOAST ── */}
       {toast && (
         <div className={`mb-toast mb-toast--${toast.type}`}>
-          {toast.type === "success" && "✅ "}
-          {toast.type === "error"   && "❌ "}
-          {toast.type === "info"    && "ℹ️ "}
+          {toast.type === "success" && "✅"}
+          {toast.type === "error"   && "❌"}
+          {toast.type === "info"    && "ℹ️"}
           {toast.msg}
         </div>
       )}

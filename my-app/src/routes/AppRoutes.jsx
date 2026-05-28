@@ -1,23 +1,24 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 /* ── Customer ── */
-import Home              from "../pages/customer/Home";
-import RestaurantDetails from "../pages/customer/RestaurantDetails";
-import Cart              from "../pages/customer/Cart";
-import Checkout          from "../pages/customer/Checkout";
-import OrderSuccess      from "../pages/customer/OrderSuccess";
-import CustomerOrders    from "../pages/customer/CustomerOrders";
-import Profile           from "../pages/customer/Profile";
+import Home                  from "../pages/customer/Home";
+import RestaurantDetails     from "../pages/customer/RestaurantDetails";
+import Cart                  from "../pages/customer/Cart";
+import Checkout              from "../pages/customer/Checkout";
+import OrderSuccess          from "../pages/customer/OrderSuccess";
+import CustomerOrders        from "../pages/customer/CustomerOrders";
+import Profile               from "../pages/customer/Profile";
+import CustomerReservations  from "../pages/customer/CustomerReservation"; // ✅ matches filename
 
 /* ── Auth ── */
-import Login             from "../pages/auth/Login";
-import Signup            from "../pages/auth/Signup";
+import Login  from "../pages/auth/Login";
+import Signup from "../pages/auth/Signup";
 
 /* ── Merchant ── */
 import MerchantRegistration from "../pages/merchant/MerchantRegistration";
 import WaitingApproval      from "../pages/merchant/WaitingApproval";
 import MerchantDashboard    from "../pages/merchant/MerchantDashboard";
-import MerchantBookings     from "../pages/merchant/MerchantBookings"; // ✅ new
+import MerchantBookings     from "../pages/merchant/MerchantBookings";
 
 /* ── Admin ── */
 import AdminLayout    from "../pages/admin/AdminLayout";
@@ -52,7 +53,9 @@ function NotFound() {
   );
 }
 
-/* ── Routes ── */
+/* ══════════════════════════════
+   APP ROUTES
+══════════════════════════════ */
 export default function AppRoutes() {
   return (
     <BrowserRouter>
@@ -66,16 +69,17 @@ export default function AppRoutes() {
         <Route path="/checkout"               element={<Checkout />} />
         <Route path="/order-success/:orderId" element={<OrderSuccess />} />
         <Route path="/profile"                element={<Profile />} />
+        <Route path="/reservations"           element={<CustomerReservations />} /> {/* ✅ new */}
 
         {/* ── Auth ── */}
-        <Route path="/login"                  element={<Login />} />
-        <Route path="/signup"                 element={<Signup />} />
+        <Route path="/login"  element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
 
         {/* ── Merchant ── */}
-        <Route path="/merchant-registration"  element={<MerchantRegistration />} />
-        <Route path="/waiting-approval"       element={<WaitingApproval />} />
-        <Route path="/merchant/dashboard"     element={<MerchantDashboard />} />
-        <Route path="/merchant/bookings"      element={<MerchantBookings />} /> {/* ✅ new */}
+        <Route path="/merchant-registration" element={<MerchantRegistration />} />
+        <Route path="/waiting-approval"      element={<WaitingApproval />} />
+        <Route path="/merchant/dashboard"    element={<MerchantDashboard />} />
+        <Route path="/merchant/bookings"     element={<MerchantBookings />} />
 
         {/* ── Admin — nested inside AdminLayout ── */}
         <Route path="/admin" element={<AdminLayout />}>
