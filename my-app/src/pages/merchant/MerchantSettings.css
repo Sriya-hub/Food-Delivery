@@ -15,8 +15,10 @@
   --cream:    #fff9f4;
   --white:    #ffffff;
   --border:   #ede8e2;
+  --amber:    #f59e0b;
   --grad1:    linear-gradient(135deg,#ff6b2b 0%,#ff3b7a 50%,#7c3aed 100%);
   --grad2:    linear-gradient(135deg,#ff9f1c 0%,#ff6b2b 100%);
+  --grad-amber: linear-gradient(135deg,#fbbf24 0%,#f59e0b 100%);
   --shadow-sm: 0 2px 12px rgba(255,107,43,.07);
   --shadow-md: 0 8px 32px rgba(255,107,43,.12);
   --r:        16px;
@@ -25,7 +27,9 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ══════════ WRAP ══════════ */
+/* ══════════════════════════════════════
+   WRAP
+══════════════════════════════════════ */
 .ms-wrap {
   font-family: 'Plus Jakarta Sans', sans-serif;
   padding: 32px 36px;
@@ -36,7 +40,9 @@
   position: relative;
 }
 
-/* ══════════ TOAST ══════════ */
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
 .ms-toast {
   position: fixed;
   top: 24px; right: 24px;
@@ -50,137 +56,21 @@
 }
 .ms-toast--success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
 .ms-toast--error   { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
-@keyframes toastIn { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:none; } }
-
-/* ══════════════════════════════════════════════
-   TABLE RESERVATION SECTION STYLES
-   Append these to your existing MerchantSettings.css
-   ══════════════════════════════════════════════ */
-
-/* Section with table accent */
-.ms-section--table {
-  border-left: 4px solid #f59e0b;
-  background: linear-gradient(135deg, #fffbeb 0%, #fff 60%);
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: none; }
 }
 
-/* Section head with icon */
-.ms-section__head-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.ms-section__icon {
-  font-size: 1.75rem;
-  line-height: 1;
-}
-
-.ms-section__sub {
-  margin: 0.2rem 0 0;
-  font-size: 0.82rem;
-  color: #6b7280;
-}
-
-/* Table toggle wrapper (right side of head) */
-.ms-table-toggle-wrap {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  flex-shrink: 0;
-}
-
-/* Status badge beside toggle */
-.ms-table-status {
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 0.2rem 0.55rem;
-  border-radius: 999px;
-  letter-spacing: 0.03em;
-}
-.ms-table-status--on {
-  background: #d1fae5;
-  color: #065f46;
-}
-.ms-table-status--off {
-  background: #f3f4f6;
-  color: #6b7280;
-}
-
-/* Larger toggle variant for table reservation */
-.ms-toggle--lg {
-  width: 52px;
-  height: 28px;
-}
-.ms-toggle--lg .ms-toggle__knob {
-  width: 22px;
-  height: 22px;
-  top: 3px;
-  left: 3px;
-}
-.ms-toggle--lg.ms-toggle--on .ms-toggle__knob {
-  transform: translateX(24px);
-}
-
-/* Table info sub-grid */
-.ms-info-grid--table {
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  margin-top: 1rem;
-}
-
-/* Disabled state hint */
-.ms-table-disabled-hint {
-  margin-top: 0.75rem;
-  padding: 0.85rem 1rem;
-  background: #f9fafb;
-  border: 1px dashed #d1d5db;
-  border-radius: 10px;
-}
-.ms-table-disabled-hint p {
-  margin: 0;
-  font-size: 0.85rem;
-  color: #9ca3af;
-  line-height: 1.55;
-}
-
-/* Edit form divider for reservation fields */
-.ms-edit-divider {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin: 1.75rem 0 1rem;
-  color: #92400e;
-  font-size: 0.88rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.ms-edit-divider::before,
-.ms-edit-divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: #fde68a;
-}
-
-/* Field hint text */
-.ms-field__hint {
-  display: block;
-  margin-top: 0.3rem;
-  font-size: 0.76rem;
-  color: #9ca3af;
-}
-
-/* Small button variant */
-.ms-btn--sm {
-  padding: 0.4rem 0.85rem;
-  font-size: 0.82rem;
-}
-
-/* ══════════ LOADING ══════════ */
+/* ══════════════════════════════════════
+   LOADING
+══════════════════════════════════════ */
 .ms-loading {
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  height: 300px; gap: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  gap: 16px;
 }
 .ms-spinner {
   width: 36px; height: 36px;
@@ -192,7 +82,9 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 .ms-error-text { color: #dc2626; font-size: .9rem; font-weight: 600; }
 
-/* ══════════ HERO CARD ══════════ */
+/* ══════════════════════════════════════
+   HERO CARD
+══════════════════════════════════════ */
 .ms-hero {
   background: var(--white);
   border: 1px solid var(--border);
@@ -252,15 +144,20 @@
   padding: 4px 12px; border-radius: 100px;
   font-size: .7rem; font-weight: 700; letter-spacing: .04em;
 }
-.ms-tag--green  { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-.ms-tag--amber  { background: rgba(255,159,28,.1); color: #92400e; border: 1px solid rgba(255,159,28,.3); }
-.ms-tag--gray   { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; font-family: monospace; }
-.ms-tag--blue   { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+.ms-tag--green { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+.ms-tag--amber { background: rgba(255,159,28,.1); color: #92400e; border: 1px solid rgba(255,159,28,.3); }
+.ms-tag--gray  { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; font-family: monospace; }
+.ms-tag--blue  { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
 
-/* ══════════ ONLINE TOGGLE ══════════ */
+/* ══════════════════════════════════════
+   ONLINE TOGGLE
+══════════════════════════════════════ */
 .ms-online-wrap {
-  display: flex; flex-direction: column;
-  align-items: center; gap: 6px; flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 .ms-online__label {
   font-size: .78rem; font-weight: 700; color: var(--charcoal);
@@ -269,6 +166,9 @@
   font-size: .68rem; color: var(--muted); text-align: center;
 }
 
+/* ══════════════════════════════════════
+   TOGGLE (shared base)
+══════════════════════════════════════ */
 .ms-toggle {
   width: 54px; height: 28px;
   border-radius: 100px;
@@ -278,8 +178,8 @@
   transition: background .25s;
   flex-shrink: 0;
 }
-.ms-toggle--on    { background: var(--grad1); }
-.ms-toggle--busy  { opacity: .6; cursor: not-allowed; }
+.ms-toggle--on   { background: var(--grad1); }
+.ms-toggle--busy { opacity: .6; cursor: not-allowed; }
 
 .ms-toggle__knob {
   position: absolute;
@@ -292,7 +192,25 @@
 }
 .ms-toggle--on .ms-toggle__knob { transform: translateX(26px); }
 
-/* ══════════ SECTION ══════════ */
+/* Large toggle variant — used for table reservation */
+.ms-toggle--lg {
+  width: 52px; height: 28px;
+}
+.ms-toggle--lg .ms-toggle__knob {
+  width: 22px; height: 22px;
+  top: 3px; left: 3px;
+}
+.ms-toggle--lg.ms-toggle--on .ms-toggle__knob {
+  transform: translateX(24px);
+}
+/* Amber tint when enabled (reservation toggle) */
+.ms-toggle--amber-on.ms-toggle--on {
+  background: var(--grad-amber);
+}
+
+/* ══════════════════════════════════════
+   SECTION (shared card)
+══════════════════════════════════════ */
 .ms-section {
   background: var(--white);
   border: 1px solid var(--border);
@@ -304,8 +222,17 @@
   gap: 22px;
 }
 
+/* Table reservation section — amber accent */
+.ms-section--table {
+  border-left: 4px solid var(--amber);
+  background: linear-gradient(135deg, #fffbeb 0%, #fff 55%);
+}
+
 .ms-section__head {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 .ms-section__head h2 {
   font-family: 'Syne', sans-serif;
@@ -313,7 +240,79 @@
   color: var(--charcoal); letter-spacing: -.02em;
 }
 
-/* ══════════ INFO GRID ══════════ */
+/* Left cluster (icon + title + subtitle) */
+.ms-section__head-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+.ms-section__icon {
+  font-size: 1.75rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.ms-section__sub {
+  margin: 3px 0 0;
+  font-size: .8rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* ══════════════════════════════════════
+   TABLE RESERVATION — TOGGLE ROW
+══════════════════════════════════════ */
+.ms-table-toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Status badge next to toggle */
+.ms-table-status {
+  font-size: .75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  letter-spacing: .03em;
+  white-space: nowrap;
+}
+.ms-table-status--on  { background: #d1fae5; color: #065f46; }
+.ms-table-status--off { background: #f3f4f6; color: #6b7280; }
+
+/* ══════════════════════════════════════
+   TABLE RESERVATION — INFO / DISABLED STATES
+══════════════════════════════════════ */
+.ms-table-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Sub-grid for the 4 reservation info cards */
+.ms-info-grid--table {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.ms-table-disabled-hint {
+  padding: 14px 18px;
+  background: #f9fafb;
+  border: 1.5px dashed #d1d5db;
+  border-radius: var(--r-sm);
+}
+.ms-table-disabled-hint p {
+  margin: 0;
+  font-size: .83rem;
+  color: #9ca3af;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+/* ══════════════════════════════════════
+   INFO GRID
+══════════════════════════════════════ */
 .ms-info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -331,24 +330,23 @@
 .ms-info-card:hover { box-shadow: var(--shadow-sm); }
 .ms-info-card--full { grid-column: 1 / -1; }
 
-.ms-info-card__icon {
-  font-size: 1.35rem; flex-shrink: 0; margin-top: 2px;
-}
+.ms-info-card__icon  { font-size: 1.35rem; flex-shrink: 0; margin-top: 2px; }
 .ms-info-card__label {
   font-size: .68rem; font-weight: 700;
   text-transform: uppercase; letter-spacing: .07em;
   color: var(--muted); margin-bottom: 5px;
 }
 .ms-info-card__value {
-  font-size: .9rem; font-weight: 600; color: var(--charcoal);
-  line-height: 1.45;
+  font-size: .9rem; font-weight: 600; color: var(--charcoal); line-height: 1.45;
 }
 .ms-info-card__value--mono {
   font-family: monospace; font-size: .78rem;
   color: var(--muted); word-break: break-all;
 }
 
-/* ══════════ IMAGE UPLOAD ══════════ */
+/* ══════════════════════════════════════
+   IMAGE UPLOAD
+══════════════════════════════════════ */
 .ms-img-upload {
   position: relative;
   border: 2px dashed var(--border);
@@ -361,15 +359,10 @@
 }
 .ms-img-upload:hover { border-color: var(--orange); }
 
-.ms-img-upload__preview {
-  width: 100%; height: 100%; object-fit: cover;
-}
-.ms-img-upload__placeholder {
-  display: flex; flex-direction: column;
-  align-items: center; gap: 8px; color: var(--muted);
-}
-.ms-img-upload__placeholder span { font-size: 2rem; }
-.ms-img-upload__placeholder p    { font-size: .85rem; font-weight: 700; color: var(--charcoal); }
+.ms-img-upload__preview       { width: 100%; height: 100%; object-fit: cover; }
+.ms-img-upload__placeholder   { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--muted); }
+.ms-img-upload__placeholder span  { font-size: 2rem; }
+.ms-img-upload__placeholder p     { font-size: .85rem; font-weight: 700; color: var(--charcoal); }
 .ms-img-upload__placeholder small { font-size: .72rem; }
 
 .ms-img-upload__overlay {
@@ -383,16 +376,16 @@
 }
 .ms-img-upload:hover .ms-img-upload__overlay { opacity: 1; }
 
-/* ══════════ EDIT GRID ══════════ */
+/* ══════════════════════════════════════
+   EDIT GRID & FIELDS
+══════════════════════════════════════ */
 .ms-edit-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
 
-.ms-field {
-  display: flex; flex-direction: column; gap: 7px;
-}
+.ms-field { display: flex; flex-direction: column; gap: 7px; }
 .ms-field--full { grid-column: 1 / -1; }
 
 .ms-field label {
@@ -419,7 +412,23 @@
   box-shadow: 0 0 0 4px rgba(255,107,43,.09);
 }
 
-/* Type buttons */
+/* Number inputs inside the reservation section get amber focus */
+.ms-section--table .ms-field input:focus {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 4px rgba(245,158,11,.1);
+}
+
+/* Field hint */
+.ms-field__hint {
+  display: block;
+  margin-top: 2px;
+  font-size: .73rem;
+  color: var(--muted);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Type selector buttons */
 .ms-type-btns { display: flex; gap: 10px; flex-wrap: wrap; }
 .ms-type-btn {
   flex: 1; min-width: 120px;
@@ -437,18 +446,26 @@
   color: #fff; box-shadow: 0 4px 14px rgba(255,59,122,.25);
 }
 
-/* ══════════ SAVE ROW ══════════ */
+/* ══════════════════════════════════════
+   SAVE ROW
+══════════════════════════════════════ */
 .ms-save-row {
-  display: flex; justify-content: flex-end; gap: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 4px;
 }
 
-/* ══════════ BUTTONS ══════════ */
+/* ══════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════ */
 .ms-btn {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 10px 20px; border-radius: var(--r-sm);
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: .83rem; font-weight: 700; cursor: pointer;
-  transition: all .2s; border: none;
+  font-size: .83rem; font-weight: 700;
+  cursor: pointer; transition: all .2s; border: none;
+  white-space: nowrap;
 }
 .ms-btn--primary {
   background: var(--grad1); color: #fff;
@@ -459,17 +476,26 @@
   box-shadow: 0 10px 28px rgba(255,59,122,.38);
 }
 .ms-btn--primary:disabled { opacity: .6; cursor: not-allowed; }
+
 .ms-btn--outline {
   background: none; color: var(--orange);
   border: 1.5px solid var(--orange);
 }
 .ms-btn--outline:hover { background: rgba(255,107,43,.06); }
+
 .ms-btn--ghost {
   background: none; color: var(--muted);
   border: 1.5px solid var(--border);
 }
 .ms-btn--ghost:hover { color: var(--charcoal); border-color: #ccc; }
 
+/* Small size */
+.ms-btn--sm {
+  padding: 7px 14px;
+  font-size: .78rem;
+}
+
+/* Spinner inside buttons */
 .ms-spin {
   width: 14px; height: 14px;
   border: 2px solid rgba(255,255,255,.35);
@@ -479,11 +505,32 @@
   flex-shrink: 0;
 }
 
-/* ══════════ RESPONSIVE ══════════ */
+/* ══════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════ */
 @media (max-width: 700px) {
-  .ms-wrap { padding: 20px 16px; }
-  .ms-hero { flex-wrap: wrap; }
-  .ms-online-wrap { flex-direction: row; gap: 10px; align-items: center; }
-  .ms-info-grid, .ms-edit-grid { grid-template-columns: 1fr; }
-  .ms-info-card--full, .ms-field--full { grid-column: 1; }
+  .ms-wrap { padding: 20px 16px; gap: 20px; }
+
+  .ms-hero { flex-wrap: wrap; padding: 22px 20px; gap: 16px; }
+  .ms-hero__name { font-size: 1.2rem; }
+  .ms-online-wrap { flex-direction: row; gap: 10px; align-items: center; width: 100%; }
+
+  .ms-section { padding: 20px 18px; }
+  .ms-section__head { flex-wrap: wrap; gap: 12px; }
+  .ms-section__head-left { gap: 10px; }
+
+  .ms-info-grid,
+  .ms-info-grid--table,
+  .ms-edit-grid { grid-template-columns: 1fr; }
+
+  .ms-info-card--full,
+  .ms-field--full { grid-column: 1; }
+
+  .ms-table-toggle-wrap { width: 100%; justify-content: flex-end; }
+
+  .ms-save-row { flex-direction: column-reverse; }
+  .ms-btn { width: 100%; justify-content: center; }
+
+  .ms-type-btns { flex-direction: column; }
+  .ms-type-btn  { min-width: unset; }
 }

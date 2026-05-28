@@ -32,11 +32,15 @@ export default function MerchantSettings() {
   const [saving, setSaving]     = useState(false);
   const [toggling, setToggling] = useState(false);
   const [togglingTable, setTogglingTable] = useState(false);
-  const [editing, setEditing]   = useState(false);
-  const [success, setSuccess]   = useState("");
-  const [error, setError]       = useState("");
 
-  const [form, setForm]       = useState({});
+  // ── Two independent edit modes ──
+  const [editingDetails,     setEditingDetails]     = useState(false);
+  const [editingReservation, setEditingReservation] = useState(false);
+
+  const [success, setSuccess] = useState("");
+  const [error,   setError]   = useState("");
+
+  const [form,    setForm]    = useState({});
   const [imgFile, setImg]     = useState(null);
   const [preview, setPreview] = useState(null);
 
@@ -62,16 +66,14 @@ export default function MerchantSettings() {
     setPreview(URL.createObjectURL(file));
   };
 
-  /* ── Save edits ── */
-  const handleSave = async () => {
+  /* ── Save restaurant details only ── */
+  const handleSaveDetails = async () => {
     setSaving(true);
     setError(""); setSuccess("");
     try {
       const fd = new FormData();
-      ["restaurantName","phoneNumber","restaurantAddress",
-       "restaurantType","openingTime","closingTime",
-       "tableReservationEnabled","totalTables","maxGuestsPerTable",
-       "reservationSlotDuration","advanceBookingDays"
+      ["restaurantName", "phoneNumber", "restaurantAddress",
+       "restaurantType", "openingTime", "closingTime",
       ].forEach(k => {
         if (form[k] !== undefined) fd.append(k, form[k]);
       });
@@ -82,9 +84,38 @@ export default function MerchantSettings() {
       if (!res.ok) throw new Error(data.message);
 
       setMerchant(data.merchant);
+      setForm(data.merchant);
       localStorage.setItem("user", JSON.stringify({ ...user, ...data.merchant }));
-      setEditing(false); setImg(null); setPreview(null);
-      setSuccess("Settings saved successfully!");
+      setEditingDetails(false);
+      setImg(null); setPreview(null);
+      setSuccess("Restaurant details saved!");
+      setTimeout(() => setSuccess(""), 3500);
+    } catch (err) {
+      setError(err.message || "Save failed.");
+    } finally { setSaving(false); }
+  };
+
+  /* ── Save reservation settings only ── */
+  const handleSaveReservation = async () => {
+    setSaving(true);
+    setError(""); setSuccess("");
+    try {
+      const fd = new FormData();
+      ["tableReservationEnabled", "totalTables", "maxGuestsPerTable",
+       "reservationSlotDuration", "advanceBookingDays",
+      ].forEach(k => {
+        if (form[k] !== undefined) fd.append(k, form[k]);
+      });
+
+      const res  = await fetch(`${API}/settings/${user._id}`, { method: "PUT", body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      setMerchant(data.merchant);
+      setForm(data.merchant);
+      localStorage.setItem("user", JSON.stringify({ ...user, ...data.merchant }));
+      setEditingReservation(false);
+      setSuccess("Reservation settings saved!");
       setTimeout(() => setSuccess(""), 3500);
     } catch (err) {
       setError(err.message || "Save failed.");
@@ -108,7 +139,7 @@ export default function MerchantSettings() {
     } finally { setToggling(false); }
   };
 
-  /* ── Toggle table reservation ── */
+  /* ── Toggle table reservation on/off ── */
   const handleTableToggle = async () => {
     setTogglingTable(true);
     try {
@@ -120,15 +151,21 @@ export default function MerchantSettings() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
       setMerchant(p => ({ ...p, tableReservationEnabled: data.tableReservationEnabled }));
+      setForm(p => ({ ...p, tableReservationEnabled: data.tableReservationEnabled }));
     } catch (err) {
       setError(err.message || "Toggle failed.");
     } finally { setTogglingTable(false); }
   };
 
-  const cancelEdit = () => {
+  const cancelDetails = () => {
     setForm(merchant);
     setImg(null); setPreview(null);
-    setEditing(false);
+    setEditingDetails(false);
+  };
+
+  const cancelReservation = () => {
+    setForm(merchant);
+    setEditingReservation(false);
   };
 
   /* ── Loading ── */
@@ -145,7 +182,8 @@ export default function MerchantSettings() {
     </div>
   );
 
-  const typeLabel = TYPE_OPTIONS.find(t => t.value === merchant.restaurantType)?.label || merchant.restaurantType || "—";
+  const typeLabel = TYPE_OPTIONS.find(t => t.value === merchant.restaurantType)?.label
+    || merchant.restaurantType || "—";
 
   /* ── Render ── */
   return (
@@ -199,103 +237,183 @@ export default function MerchantSettings() {
       </div>
 
       {/* ══════════════════════════════
-          TABLE RESERVATION SECTION
+          TABLE RESERVATION — VIEW
       ══════════════════════════════ */}
-      <div className="ms-section ms-section--table">
-        <div className="ms-section__head">
-          <div className="ms-section__head-left">
-            <span className="ms-section__icon">🪑</span>
-            <div>
-              <h2>Table Reservations</h2>
-              <p className="ms-section__sub">
-                {merchant.tableReservationEnabled
-                  ? "Customers can book tables at your restaurant"
-                  : "Table bookings are currently disabled"}
-              </p>
+      {!editingReservation && (
+        <div className="ms-section ms-section--table">
+          <div className="ms-section__head">
+            <div className="ms-section__head-left">
+              <span className="ms-section__icon">🪑</span>
+              <div>
+                <h2>Table Reservations</h2>
+                <p className="ms-section__sub">
+                  {merchant.tableReservationEnabled
+                    ? "Customers can book tables at your restaurant"
+                    : "Table bookings are currently disabled"}
+                </p>
+              </div>
+            </div>
+            <div className="ms-table-toggle-wrap">
+              <span className={`ms-table-status ${merchant.tableReservationEnabled ? "ms-table-status--on" : "ms-table-status--off"}`}>
+                {merchant.tableReservationEnabled ? "Enabled" : "Disabled"}
+              </span>
+              <button
+                className={`ms-toggle ms-toggle--lg ${merchant.tableReservationEnabled ? "ms-toggle--on" : ""} ${togglingTable ? "ms-toggle--busy" : ""}`}
+                onClick={handleTableToggle}
+                disabled={togglingTable}
+                title={merchant.tableReservationEnabled ? "Disable Table Reservations" : "Enable Table Reservations"}
+              >
+                <span className="ms-toggle__knob" />
+              </button>
             </div>
           </div>
-          <div className="ms-table-toggle-wrap">
-            <span className={`ms-table-status ${merchant.tableReservationEnabled ? "ms-table-status--on" : "ms-table-status--off"}`}>
-              {merchant.tableReservationEnabled ? "Enabled" : "Disabled"}
-            </span>
+
+          {/* Details grid — only when enabled */}
+          {merchant.tableReservationEnabled && (
+            <div className="ms-table-info">
+              <div className="ms-info-grid ms-info-grid--table">
+                <div className="ms-info-card">
+                  <span className="ms-info-card__icon">🪑</span>
+                  <div>
+                    <p className="ms-info-card__label">Total Tables</p>
+                    <p className="ms-info-card__value">{merchant.totalTables || "—"}</p>
+                  </div>
+                </div>
+
+                <div className="ms-info-card">
+                  <span className="ms-info-card__icon">👥</span>
+                  <div>
+                    <p className="ms-info-card__label">Max Guests / Table</p>
+                    <p className="ms-info-card__value">{merchant.maxGuestsPerTable || "—"}</p>
+                  </div>
+                </div>
+
+                <div className="ms-info-card">
+                  <span className="ms-info-card__icon">⏱</span>
+                  <div>
+                    <p className="ms-info-card__label">Slot Duration</p>
+                    <p className="ms-info-card__value">
+                      {merchant.reservationSlotDuration ? `${merchant.reservationSlotDuration} min` : "—"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="ms-info-card">
+                  <span className="ms-info-card__icon">📅</span>
+                  <div>
+                    <p className="ms-info-card__label">Advance Booking</p>
+                    <p className="ms-info-card__value">
+                      {merchant.advanceBookingDays ? `Up to ${merchant.advanceBookingDays} days` : "—"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                className="ms-btn ms-btn--outline ms-btn--sm"
+                onClick={() => setEditingReservation(true)}
+                style={{ marginTop: "1rem" }}
+              >
+                ✏️ Edit Reservation Settings
+              </button>
+            </div>
+          )}
+
+          {/* Hint when disabled */}
+          {!merchant.tableReservationEnabled && (
+            <div className="ms-table-disabled-hint">
+              <p>Toggle the switch above to start accepting table reservations. You can then configure the number of tables, guest limits, and booking slots.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ══════════════════════════════
+          TABLE RESERVATION — EDIT FORM
+      ══════════════════════════════ */}
+      {editingReservation && (
+        <div className="ms-section ms-section--table">
+          <div className="ms-section__head">
+            <div className="ms-section__head-left">
+              <span className="ms-section__icon">🪑</span>
+              <h2>Edit Reservation Settings</h2>
+            </div>
+            <button className="ms-btn ms-btn--ghost" onClick={cancelReservation}>✕ Cancel</button>
+          </div>
+
+          <div className="ms-edit-grid">
+
+            <div className="ms-field">
+              <label>Total Tables</label>
+              <input
+                type="number"
+                min="1"
+                value={form.totalTables || ""}
+                onChange={e => set("totalTables", e.target.value)}
+                placeholder="e.g. 20"
+              />
+            </div>
+
+            <div className="ms-field">
+              <label>Max Guests per Table</label>
+              <input
+                type="number"
+                min="1"
+                value={form.maxGuestsPerTable || ""}
+                onChange={e => set("maxGuestsPerTable", e.target.value)}
+                placeholder="e.g. 4"
+              />
+            </div>
+
+            <div className="ms-field">
+              <label>Slot Duration (minutes)</label>
+              <input
+                type="number"
+                min="15"
+                step="15"
+                value={form.reservationSlotDuration || ""}
+                onChange={e => set("reservationSlotDuration", e.target.value)}
+                placeholder="e.g. 60"
+              />
+              <small className="ms-field__hint">How long each reservation lasts</small>
+            </div>
+
+            <div className="ms-field">
+              <label>Advance Booking Days</label>
+              <input
+                type="number"
+                min="1"
+                max="90"
+                value={form.advanceBookingDays || ""}
+                onChange={e => set("advanceBookingDays", e.target.value)}
+                placeholder="e.g. 7"
+              />
+              <small className="ms-field__hint">How many days ahead customers can book</small>
+            </div>
+
+          </div>
+
+          <div className="ms-save-row">
+            <button className="ms-btn ms-btn--ghost" onClick={cancelReservation}>Cancel</button>
             <button
-              className={`ms-toggle ms-toggle--lg ${merchant.tableReservationEnabled ? "ms-toggle--on" : ""} ${togglingTable ? "ms-toggle--busy" : ""}`}
-              onClick={handleTableToggle}
-              disabled={togglingTable}
-              title={merchant.tableReservationEnabled ? "Disable Table Reservations" : "Enable Table Reservations"}
+              className={`ms-btn ms-btn--primary ${saving ? "ms-btn--loading" : ""}`}
+              onClick={handleSaveReservation}
+              disabled={saving}
             >
-              <span className="ms-toggle__knob" />
+              {saving ? <><span className="ms-spin" /> Saving…</> : "💾 Save Reservation Settings"}
             </button>
           </div>
         </div>
-
-        {/* Table reservation details — shown only when enabled */}
-        {merchant.tableReservationEnabled && !editing && (
-          <div className="ms-table-info">
-            <div className="ms-info-grid ms-info-grid--table">
-              <div className="ms-info-card">
-                <span className="ms-info-card__icon">🪑</span>
-                <div>
-                  <p className="ms-info-card__label">Total Tables</p>
-                  <p className="ms-info-card__value">{merchant.totalTables || "—"}</p>
-                </div>
-              </div>
-
-              <div className="ms-info-card">
-                <span className="ms-info-card__icon">👥</span>
-                <div>
-                  <p className="ms-info-card__label">Max Guests / Table</p>
-                  <p className="ms-info-card__value">{merchant.maxGuestsPerTable || "—"}</p>
-                </div>
-              </div>
-
-              <div className="ms-info-card">
-                <span className="ms-info-card__icon">⏱</span>
-                <div>
-                  <p className="ms-info-card__label">Slot Duration</p>
-                  <p className="ms-info-card__value">
-                    {merchant.reservationSlotDuration ? `${merchant.reservationSlotDuration} min` : "—"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="ms-info-card">
-                <span className="ms-info-card__icon">📅</span>
-                <div>
-                  <p className="ms-info-card__label">Advance Booking</p>
-                  <p className="ms-info-card__value">
-                    {merchant.advanceBookingDays ? `Up to ${merchant.advanceBookingDays} days` : "—"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <button
-              className="ms-btn ms-btn--outline ms-btn--sm"
-              onClick={() => setEditing(true)}
-              style={{ marginTop: "1rem" }}
-            >
-              ✏️ Edit Reservation Settings
-            </button>
-          </div>
-        )}
-
-        {/* Placeholder when disabled */}
-        {!merchant.tableReservationEnabled && (
-          <div className="ms-table-disabled-hint">
-            <p>Toggle the switch above to start accepting table reservations. You can then configure the number of tables, guest limits, and booking slots.</p>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* ══════════════════════════════
-          INFO GRID (View mode)
+          RESTAURANT DETAILS — VIEW
       ══════════════════════════════ */}
-      {!editing && (
+      {!editingDetails && (
         <div className="ms-section">
           <div className="ms-section__head">
             <h2>Restaurant Details</h2>
-            <button className="ms-btn ms-btn--outline" onClick={() => setEditing(true)}>
+            <button className="ms-btn ms-btn--outline" onClick={() => setEditingDetails(true)}>
               ✏️ Edit Details
             </button>
           </div>
@@ -369,13 +487,13 @@ export default function MerchantSettings() {
       )}
 
       {/* ══════════════════════════════
-          EDIT FORM
+          RESTAURANT DETAILS — EDIT FORM
       ══════════════════════════════ */}
-      {editing && (
+      {editingDetails && (
         <div className="ms-section">
           <div className="ms-section__head">
             <h2>Edit Details</h2>
-            <button className="ms-btn ms-btn--ghost" onClick={cancelEdit}>✕ Cancel</button>
+            <button className="ms-btn ms-btn--ghost" onClick={cancelDetails}>✕ Cancel</button>
           </div>
 
           {/* Image upload */}
@@ -474,73 +592,12 @@ export default function MerchantSettings() {
 
           </div>
 
-          {/* ── Table Reservation Edit Fields ── */}
-          {form.tableReservationEnabled && (
-            <>
-              <div className="ms-edit-divider">
-                <span>🪑 Table Reservation Settings</span>
-              </div>
-
-              <div className="ms-edit-grid">
-
-                <div className="ms-field">
-                  <label>Total Tables</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={form.totalTables || ""}
-                    onChange={e => set("totalTables", e.target.value)}
-                    placeholder="e.g. 20"
-                  />
-                </div>
-
-                <div className="ms-field">
-                  <label>Max Guests per Table</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={form.maxGuestsPerTable || ""}
-                    onChange={e => set("maxGuestsPerTable", e.target.value)}
-                    placeholder="e.g. 4"
-                  />
-                </div>
-
-                <div className="ms-field">
-                  <label>Slot Duration (minutes)</label>
-                  <input
-                    type="number"
-                    min="15"
-                    step="15"
-                    value={form.reservationSlotDuration || ""}
-                    onChange={e => set("reservationSlotDuration", e.target.value)}
-                    placeholder="e.g. 60"
-                  />
-                  <small className="ms-field__hint">How long each reservation lasts</small>
-                </div>
-
-                <div className="ms-field">
-                  <label>Advance Booking Days</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="90"
-                    value={form.advanceBookingDays || ""}
-                    onChange={e => set("advanceBookingDays", e.target.value)}
-                    placeholder="e.g. 7"
-                  />
-                  <small className="ms-field__hint">How many days ahead customers can book</small>
-                </div>
-
-              </div>
-            </>
-          )}
-
           {/* Save */}
           <div className="ms-save-row">
-            <button className="ms-btn ms-btn--ghost" onClick={cancelEdit}>Cancel</button>
+            <button className="ms-btn ms-btn--ghost" onClick={cancelDetails}>Cancel</button>
             <button
               className={`ms-btn ms-btn--primary ${saving ? "ms-btn--loading" : ""}`}
-              onClick={handleSave}
+              onClick={handleSaveDetails}
               disabled={saving}
             >
               {saving ? <><span className="ms-spin" /> Saving…</> : "💾 Save Changes"}
