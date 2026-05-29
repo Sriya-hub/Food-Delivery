@@ -15,12 +15,18 @@ const IMG_FALLBACK =
 const imgSrc = (p) =>
   p ? (p.startsWith("http") ? p : `${API_URL}${p}`) : IMG_FALLBACK;
 
-function isOpen(opening, closing) {
+// ✅ FIXED: Added isOnline parameter
+function isOpen(opening, closing, isOnline) {
+  if (isOnline === false) return false;
   if (!opening || !closing) return null;
+
+  const now = new Date();
   const [oh, om] = opening.split(":").map(Number);
   const [ch, cm] = closing.split(":").map(Number);
-  const cur = new Date().getHours() * 60 + new Date().getMinutes();
-  return cur >= oh * 60 + om && cur <= ch * 60 + cm;
+  const openMins  = oh * 60 + om;
+  const closeMins = ch * 60 + cm;
+  const nowMins   = now.getHours() * 60 + now.getMinutes();
+  return nowMins >= openMins && nowMins <= closeMins;
 }
 
 function formatTime(t) {
@@ -504,7 +510,8 @@ export default function RestaurantDetails() {
     toastTimer.current = setTimeout(() => setToast(null), 2500);
   };
 
-  const open       = restaurant ? isOpen(restaurant.openingTime, restaurant.closingTime) : null;
+  // ✅ FIXED: Now passes restaurant.isOnline as third argument
+  const open       = restaurant ? isOpen(restaurant.openingTime, restaurant.closingTime, restaurant.isOnline) : null;
   const cartCount  = cart.reduce((s, c) => s + c.quantity, 0);
   const cats       = ["All", ...new Set(foods.map((f) => f.category).filter(Boolean))];
   const filtered   = foods.filter(

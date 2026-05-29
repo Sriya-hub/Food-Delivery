@@ -1,6 +1,8 @@
 import "./RestaurantCard.css";
 import { useNavigate } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 const DEFAULT_IMG =
   "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1200&auto=format&fit=crop";
 
@@ -12,7 +14,9 @@ function formatTime(t) {
   return `${hour}:${m.toString().padStart(2, "0")} ${ampm}`;
 }
 
-function isOpen(opening, closing) {
+// ✅ isOnline=false means merchant manually went offline → always Closed
+function isOpen(opening, closing, isOnline) {
+  if (isOnline === false) return false;        // manually offline
   if (!opening || !closing) return null;
   const now = new Date();
   const [oh, om] = opening.split(":").map(Number);
@@ -23,8 +27,16 @@ function isOpen(opening, closing) {
 
 export default function RestaurantCard({ restaurant: r }) {
   const navigate = useNavigate();
-  const open = isOpen(r.openingTime, r.closingTime);
+
+  // ✅ Pass r.isOnline as third argument
+  const open = isOpen(r.openingTime, r.closingTime, r.isOnline);
   const cuisines = (r.cuisineType || r.restaurantType || "").toString();
+
+  const imgSrc = r.restaurantImage
+    ? r.restaurantImage.startsWith("http")
+      ? r.restaurantImage
+      : `${API_URL}/${r.restaurantImage.replace(/^\//, "")}`
+    : DEFAULT_IMG;
 
   return (
     <div className="rc" onClick={() => navigate(`/restaurant/${r._id}`)}>
@@ -32,13 +44,7 @@ export default function RestaurantCard({ restaurant: r }) {
       {/* Image */}
       <div className="rc__img">
         <img
-          src={
-  r.restaurantImage
-    ? r.restaurantImage.startsWith("http")
-      ? r.restaurantImage
-      : `http://localhost:5000/${r.restaurantImage.replace(/^\//, "")}`
-    : DEFAULT_IMG
-}
+          src={imgSrc}
           alt={r.restaurantName}
           loading="lazy"
         />
@@ -53,10 +59,8 @@ export default function RestaurantCard({ restaurant: r }) {
       {/* Body */}
       <div className="rc__body">
 
-        {/* Name — most prominent element */}
         <h3 className="rc__name">{r.restaurantName}</h3>
 
-        {/* Cuisine type */}
         {cuisines && (
           <p className="rc__cuisine">
             <span className="rc__cuisine-icon">🍽</span>
@@ -64,7 +68,6 @@ export default function RestaurantCard({ restaurant: r }) {
           </p>
         )}
 
-        {/* Timing block */}
         <div className="rc__timing">
           <div className="rc__timing-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -80,7 +83,6 @@ export default function RestaurantCard({ restaurant: r }) {
           </div>
         </div>
 
-        {/* Address */}
         <p className="rc__address">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
@@ -89,7 +91,6 @@ export default function RestaurantCard({ restaurant: r }) {
           {r.restaurantAddress}
         </p>
 
-        {/* Footer */}
         <div className="rc__footer">
           <span className="rc__rating">⭐ {r.rating || "4.5"}</span>
           <span className="rc__cta">View Menu →</span>

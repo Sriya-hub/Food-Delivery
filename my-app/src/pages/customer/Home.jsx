@@ -5,6 +5,7 @@ import axios from "axios";
 import Header from "../../components/customer/Header";
 import "./Home.css";
 
+
 const STATS = [
   { value: "200+", label: "Restaurants" },
   { value: "50K+", label: "Happy diners" },
@@ -37,7 +38,9 @@ function formatTime(t) {
   return `${hour}:${m.toString().padStart(2, "0")} ${ampm}`;
 }
 
-function isOpen(opening, closing) {
+// ✅ New — pass isOnline too
+function isOpen(opening, closing, isOnline) {
+  if (isOnline === false) return false; // manually offline
   if (!opening || !closing) return null;
   const now = new Date();
   const [oh, om] = opening.split(":").map(Number);
@@ -76,7 +79,7 @@ function CartToast({ item, onClose }) {
 /* ── Restaurant Card ── */
 function RestaurantCard({ r, onBook }) {
   const navigate = useNavigate();
-  const open     = isOpen(r.openingTime, r.closingTime);
+  const open     = isOpen(r.openingTime, r.closingTime, r.isOnline); // ✅ add r.isOnline
   const cuisine  = r.restaurantType || "";
 
   return (
@@ -492,14 +495,21 @@ export default function Home() {
       const now = new Date();
       const cur = now.getHours() * 60 + now.getMinutes();
       list.forEach((r) => {
-        if (r.openingTime && r.closingTime) {
-          const [oh, om] = r.openingTime.split(":").map(Number);
-          const [ch, cm] = r.closingTime.split(":").map(Number);
-          const open = cur >= oh * 60 + om && cur <= ch * 60 + cm;
-          oMap[r._id] = open;
-          if (r.merchantId) oMap[r.merchantId] = open;
-        }
-      });
+  // ✅ First check if merchant manually set offline
+  if (r.isOnline === false) {
+    oMap[r._id] = false;
+    if (r.merchantId) oMap[r.merchantId] = false;
+    return; // skip time check
+  }
+
+  if (r.openingTime && r.closingTime) {
+    const [oh, om] = r.openingTime.split(":").map(Number);
+    const [ch, cm] = r.closingTime.split(":").map(Number);
+    const open = cur >= oh * 60 + om && cur <= ch * 60 + cm;
+    oMap[r._id] = open;
+    if (r.merchantId) oMap[r.merchantId] = open;
+  }
+});
       setOpenMap(oMap);
 
       // Fetch all food items

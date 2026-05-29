@@ -83,7 +83,7 @@ router.get("/approved-restaurants", async (req, res) => {
       isApproved: true,
     })
       .select(
-        "_id restaurantName restaurantType restaurantAddress openingTime closingTime phoneNumber restaurantImage tableReservationEnabled" // ✅ added
+        "_id restaurantName restaurantType restaurantAddress openingTime closingTime phoneNumber restaurantImage tableReservationEnabled isOnline" // ✅ isOnline added
       )
       .sort({ createdAt: -1 });
 
@@ -104,7 +104,7 @@ router.get("/approved-restaurants", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select(
-      "_id restaurantName restaurantType restaurantAddress openingTime closingTime phoneNumber restaurantImage isApproved tableReservationEnabled" // ✅ added
+      "_id restaurantName restaurantType restaurantAddress openingTime closingTime phoneNumber restaurantImage isApproved tableReservationEnabled isOnline" // ✅ isOnline added
     );
 
     if (!user) {
