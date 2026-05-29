@@ -21,10 +21,13 @@ export default function MerchantRegistration() {
     openingTime:       "",
     closingTime:       "",
   });
-  const [image, setImage]     = useState(null);
-  const [preview, setPreview] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors]   = useState({});
+  const [image,     setImage]     = useState(null);
+  const [preview,   setPreview]   = useState(null);
+  const [loading,   setLoading]   = useState(false);
+  const [errors,    setErrors]    = useState({});
+  const [latitude,  setLatitude]  = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [locLoading, setLocLoading] = useState(false);
 
   const set = (k, v) => {
     setForm(p => ({ ...p, [k]: v }));
@@ -36,6 +39,27 @@ export default function MerchantRegistration() {
     if (!file) return;
     setImage(file);
     setPreview(URL.createObjectURL(file));
+  };
+
+  const getRestaurantLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+    setLocLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLatitude(position.coords.latitude);
+        setLongitude(position.coords.longitude);
+        setLocLoading(false);
+        setErrors(p => ({ ...p, location: "" }));
+      },
+      (error) => {
+        setLocLoading(false);
+        alert("Unable to get location. Please allow location access and try again.");
+        console.error(error);
+      }
+    );
   };
 
   const validate = () => {
@@ -53,6 +77,11 @@ export default function MerchantRegistration() {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
 
+    if (!latitude || !longitude) {
+      setErrors(p => ({ ...p, location: "Please capture restaurant location first" }));
+      return;
+    }
+
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) { navigate("/login"); return; }
 
@@ -61,6 +90,8 @@ export default function MerchantRegistration() {
 
       const fd = new FormData();
       Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+      fd.append("latitude",  latitude);
+      fd.append("longitude", longitude);
       if (image) fd.append("restaurantImage", image);
 
       const res = await fetch(
@@ -139,9 +170,7 @@ export default function MerchantRegistration() {
               style={{ display: "none" }}
               onChange={handleImage}
             />
-            {preview && (
-              <div className="mr-upload__change">Change Photo</div>
-            )}
+            {preview && <div className="mr-upload__change">Change Photo</div>}
           </div>
 
           {/* ── FORM FIELDS ── */}
@@ -180,6 +209,32 @@ export default function MerchantRegistration() {
                 onChange={e => set("restaurantAddress", e.target.value)}
               />
               {errors.restaurantAddress && <span className="mr-field__err">{errors.restaurantAddress}</span>}
+            </div>
+
+            {/* ── LOCATION CAPTURE ── */}
+            <div className={`mr-field mr-field--full ${errors.location ? "mr-field--error" : ""}`}>
+              <label>Restaurant Location</label>
+              <button
+                type="button"
+                className={`mr-location-btn ${latitude ? "mr-location-btn--captured" : ""}`}
+                onClick={getRestaurantLocation}
+                disabled={locLoading}
+              >
+                {locLoading ? (
+                  <><span className="mr-loc-spinner" /> Detecting Location…</>
+                ) : latitude ? (
+                  <>✅ Location Captured — Click to Refresh</>
+                ) : (
+                  <>📍 Use Current Restaurant Location</>
+                )}
+              </button>
+              {latitude && longitude && (
+                <div className="mr-location-info">
+                  <span>📌</span>
+                  <span>Lat: <strong>{Number(latitude).toFixed(5)}</strong> &nbsp; Lng: <strong>{Number(longitude).toFixed(5)}</strong></span>
+                </div>
+              )}
+              {errors.location && <span className="mr-field__err">{errors.location}</span>}
             </div>
 
             {/* Type */}
