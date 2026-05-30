@@ -8,11 +8,12 @@ import Checkout              from "../pages/customer/Checkout";
 import OrderSuccess          from "../pages/customer/OrderSuccess";
 import CustomerOrders        from "../pages/customer/CustomerOrders";
 import Profile               from "../pages/customer/Profile";
-import CustomerReservations  from "../pages/customer/CustomerReservation"; // ✅ matches filename
+import CustomerReservations  from "../pages/customer/CustomerReservation";
 
 /* ── Auth ── */
-import Login  from "../pages/auth/Login";
-import Signup from "../pages/auth/Signup";
+import Login          from "../pages/auth/Login";
+import Signup         from "../pages/auth/Signup";
+import ForgotPassword from "../pages/auth/ForgotPassword"; // ✅ added
 
 /* ── Merchant ── */
 import MerchantRegistration from "../pages/merchant/MerchantRegistration";
@@ -69,11 +70,12 @@ export default function AppRoutes() {
         <Route path="/checkout"               element={<Checkout />} />
         <Route path="/order-success/:orderId" element={<OrderSuccess />} />
         <Route path="/profile"                element={<Profile />} />
-        <Route path="/reservations"           element={<CustomerReservations />} /> {/* ✅ new */}
+        <Route path="/reservations"           element={<CustomerReservations />} />
 
         {/* ── Auth ── */}
-        <Route path="/login"  element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route path="/login"           element={<Login />} />
+        <Route path="/signup"          element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} /> {/* ✅ added */}
 
         {/* ── Merchant ── */}
         <Route path="/merchant-registration" element={<MerchantRegistration />} />
