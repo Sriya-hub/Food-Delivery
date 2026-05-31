@@ -104,6 +104,14 @@ app.use(
 );
 
 /* =========================
+   DELIVERY PARTNER
+========================= */
+app.use(
+  "/api/delivery-partner",
+  require("./routes/deliveryRegistration.routes")
+);
+
+/* =========================
    TEST ROUTE
 ========================= */
 app.get("/", (req, res) => {
