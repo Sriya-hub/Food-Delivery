@@ -16,7 +16,7 @@ const NAV = [
       { label: "Orders",    path: "/admin/orders",    icon: <BoxIcon /> },
       { label: "Customers", path: "/admin/customers", icon: <UsersIcon /> },
       { label: "Products",  path: "/admin/products",  icon: <TagIcon /> },
-      { label: "Delivery",  path: "/admin/delivery",  icon: <TruckIcon /> },  // ← ADDED
+      { label: "Delivery Boys",  path: "/admin/delivery",  icon: <TruckIcon /> },  // ← ADDED
     ],
   },
   {
