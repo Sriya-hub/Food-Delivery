@@ -1,26 +1,300 @@
 const express = require("express");
 const router = express.Router();
+
 const DeliveryPartner = require("../models/DeliveryPartner");
+const deliveryUpload = require("../middleware/deliveryUpload");
 
-router.post("/register", async (req,res) => {
+/* =====================================
+   DELIVERY PARTNER REGISTRATION
+===================================== */
+
+router.post(
+  "/register",
+
+  deliveryUpload.fields([
+    {
+      name: "profilePhoto",
+      maxCount: 1,
+    },
+    {
+      name: "aadhaarFront",
+      maxCount: 1,
+    },
+    {
+      name: "aadhaarBack",
+      maxCount: 1,
+    },
+    {
+      name: "drivingLicenseImage",
+      maxCount: 1,
+    },
+    {
+      name: "vehicleRC",
+      maxCount: 1,
+    },
+  ]),
+
+  async (req, res) => {
     try {
+      const {
+        fullName,
+        mobile,
+        email,
+        dob,
+        gender,
 
-        const partner =
-            await DeliveryPartner.create(req.body);
+        houseNo,
+        street,
+        area,
+        city,
+        state,
+        pincode,
 
-        res.status(201).json({
-            success:true,
-            message:"Registration Submitted",
-            data:partner
+        aadhaarNumber,
+        drivingLicenseNumber,
+
+        vehicleType,
+        vehicleNumber,
+
+        bankHolderName,
+        bankName,
+        accountNumber,
+        ifscCode,
+        upiId,
+
+        emergencyName,
+        emergencyRelation,
+        emergencyPhone,
+
+        workType,
+        preferredArea,
+        workingHours,
+
+        locationPermission,
+      } = req.body;
+
+      /* ==========================
+         VALIDATION
+      ========================== */
+
+      if (!fullName || !mobile) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Full name and mobile number are required",
+        });
+      }
+
+      /* ==========================
+         CHECK EXISTING RECORD
+      ========================== */
+
+      const existingPartner =
+        await DeliveryPartner.findOne({
+          mobile,
         });
 
-    } catch(err){
-
-        res.status(500).json({
-            success:false,
-            message:err.message
+      if (
+        existingPartner &&
+        existingPartner.registrationCompleted
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Registration already completed",
         });
+      }
+
+      /* ==========================
+         FILE PATHS
+      ========================== */
+
+      const profilePhoto =
+        req.files?.profilePhoto?.[0]?.path || "";
+
+      const aadhaarFront =
+        req.files?.aadhaarFront?.[0]?.path || "";
+
+      const aadhaarBack =
+        req.files?.aadhaarBack?.[0]?.path || "";
+
+      const drivingLicenseImage =
+        req.files?.drivingLicenseImage?.[0]?.path || "";
+
+      const vehicleRC =
+        req.files?.vehicleRC?.[0]?.path || "";
+
+      /* ==========================
+         CREATE OR UPDATE
+      ========================== */
+
+      let partner;
+
+      if (existingPartner) {
+        partner = existingPartner;
+
+        partner.fullName = fullName;
+        partner.email = email;
+        partner.dob = dob;
+        partner.gender = gender;
+
+        partner.profilePhoto = profilePhoto;
+
+        partner.address = {
+          houseNo,
+          street,
+          area,
+          city,
+          state,
+          pincode,
+        };
+
+        partner.aadhaarNumber =
+          aadhaarNumber;
+
+        partner.aadhaarFront =
+          aadhaarFront;
+
+        partner.aadhaarBack =
+          aadhaarBack;
+
+        partner.drivingLicenseNumber =
+          drivingLicenseNumber;
+
+        partner.drivingLicenseImage =
+          drivingLicenseImage;
+
+        partner.vehicleType =
+          vehicleType;
+
+        partner.vehicleNumber =
+          vehicleNumber;
+
+        partner.vehicleRC =
+          vehicleRC;
+
+        partner.bankHolderName =
+          bankHolderName;
+
+        partner.bankName =
+          bankName;
+
+        partner.accountNumber =
+          accountNumber;
+
+        partner.ifscCode =
+          ifscCode;
+
+        partner.upiId =
+          upiId;
+
+        partner.emergencyName =
+          emergencyName;
+
+        partner.emergencyRelation =
+          emergencyRelation;
+
+        partner.emergencyPhone =
+          emergencyPhone;
+
+        partner.workType =
+          workType;
+
+        partner.preferredArea =
+          preferredArea;
+
+        partner.workingHours =
+          workingHours;
+
+        partner.locationPermission =
+          locationPermission === "true";
+
+        partner.registrationCompleted =
+          true;
+
+        partner.approvalStatus =
+          "Pending";
+
+        await partner.save();
+      } else {
+        partner =
+          await DeliveryPartner.create({
+            fullName,
+            mobile,
+            email,
+            dob,
+            gender,
+
+            profilePhoto,
+
+            address: {
+              houseNo,
+              street,
+              area,
+              city,
+              state,
+              pincode,
+            },
+
+            aadhaarNumber,
+            aadhaarFront,
+            aadhaarBack,
+
+            drivingLicenseNumber,
+            drivingLicenseImage,
+
+            vehicleType,
+            vehicleNumber,
+            vehicleRC,
+
+            bankHolderName,
+            bankName,
+            accountNumber,
+            ifscCode,
+            upiId,
+
+            emergencyName,
+            emergencyRelation,
+            emergencyPhone,
+
+            workType,
+            preferredArea,
+            workingHours,
+
+            locationPermission:
+              locationPermission ===
+              "true",
+
+            registrationCompleted:
+              true,
+
+            approvalStatus:
+              "Pending",
+          });
+      }
+
+      /* ==========================
+         SUCCESS
+      ========================== */
+
+      res.status(201).json({
+        success: true,
+        message:
+          "Registration submitted successfully. Waiting for admin approval.",
+        approvalStatus:
+          partner.approvalStatus,
+      });
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).json({
+        success: false,
+        message:
+          error.message ||
+          "Registration failed",
+      });
     }
-});
+  }
+);
 
 module.exports = router;

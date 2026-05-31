@@ -111,6 +111,16 @@ app.use(
   require("./routes/deliveryRegistration.routes")
 );
 
+app.use(
+  "/api/delivery",
+  require("./routes/deliveryProfile.routes")
+);
+
+app.use(
+  "/api/admin",
+  require("./routes/adminDelivery.routes")
+);
+
 /* =========================
    TEST ROUTE
 ========================= */

@@ -1,9 +1,11 @@
 const express = require("express");
-const bcrypt  = require("bcryptjs");
-const jwt     = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
-const router  = express.Router();
-const User    = require("../models/User");
+const router = express.Router();
+
+const User = require("../models/User");
+const DeliveryPartner = require("../models/DeliveryPartner");
 
 /* =========================
    ROUTE LOADED CHECK
@@ -16,15 +18,10 @@ console.log("✅ LOGIN ROUTES LOADED");
 ========================= */
 
 router.get("/login", (req, res) => {
-
   res.status(200).json({
-
     success: true,
-
-    message: "Login route working"
-
+    message: "Login route working",
   });
-
 });
 
 /* =========================
@@ -32,9 +29,7 @@ router.get("/login", (req, res) => {
 ========================= */
 
 router.post("/login", async (req, res) => {
-
   try {
-
     console.log("✅ LOGIN API HIT");
     console.log("BODY:", req.body);
 
@@ -45,15 +40,10 @@ router.post("/login", async (req, res) => {
     ========================= */
 
     if (!email || !password) {
-
       return res.status(400).json({
-
         success: false,
-
-        message: "Email and password required"
-
+        message: "Email and password required",
       });
-
     }
 
     /* =========================
@@ -61,21 +51,14 @@ router.post("/login", async (req, res) => {
     ========================= */
 
     const user = await User.findOne({
-
-      email: email.toLowerCase()
-
+      email: email.toLowerCase(),
     });
 
     if (!user) {
-
       return res.status(400).json({
-
         success: false,
-
-        message: "User not found"
-
+        message: "User not found",
       });
-
     }
 
     /* =========================
@@ -83,22 +66,15 @@ router.post("/login", async (req, res) => {
     ========================= */
 
     const isMatch = await bcrypt.compare(
-
       password,
       user.password
-
     );
 
     if (!isMatch) {
-
       return res.status(400).json({
-
         success: false,
-
-        message: "Invalid credentials"
-
+        message: "Invalid credentials",
       });
-
     }
 
     /* =========================
@@ -106,16 +82,24 @@ router.post("/login", async (req, res) => {
     ========================= */
 
     if (user.isBlocked) {
-
       return res.status(403).json({
-
         success: false,
-
         message:
-          "Your account has been blocked. Please contact support."
-
+          "Your account has been blocked. Please contact support.",
       });
+    }
 
+    /* =========================
+       DELIVERY PROFILE CHECK
+    ========================= */
+
+    let deliveryProfile = null;
+
+    if (user.role === "delivery") {
+      deliveryProfile =
+        await DeliveryPartner.findOne({
+          userId: user._id,
+        });
     }
 
     /* =========================
@@ -123,31 +107,21 @@ router.post("/login", async (req, res) => {
     ========================= */
 
     const token = jwt.sign(
-
       {
-        id:   user._id,
-        role: user.role
+        id: user._id,
+        role: user.role,
       },
-
       process.env.JWT_SECRET,
-
       {
-        expiresIn: "7d"
+        expiresIn: "7d",
       }
-
     );
 
     /* =========================
        SUCCESS RESPONSE
-       Include phoneNumber and
-       deliveryAddresses so that
-       localStorage has full profile
-       data immediately after login —
-       no extra fetch required.
     ========================= */
 
     return res.status(200).json({
-
       success: true,
 
       message: "Login successful",
@@ -155,50 +129,76 @@ router.post("/login", async (req, res) => {
       token,
 
       user: {
+        _id: user._id,
 
-        _id:   user._id,
-
-        name:  user.name,
+        name: user.name,
 
         email: user.email,
 
-        role:  user.role,
+        role: user.role,
 
-        /* contact & addresses */
         phoneNumber:
           user.phoneNumber || "",
 
         deliveryAddresses:
           user.deliveryAddresses || [],
 
-        /* status flags */
-        isBlocked:  user.isBlocked,
+        isBlocked:
+          user.isBlocked,
 
-        isApproved: user.isApproved,
+        isApproved:
+          user.isApproved,
 
-        isRejected: user.isRejected,
+        isRejected:
+          user.isRejected,
 
         registrationCompleted:
-          user.registrationCompleted
+          user.registrationCompleted,
+      },
 
-      }
+      /* =========================
+         DELIVERY STATUS
+      ========================= */
 
+      deliveryStatus:
+        user.role === "delivery"
+          ? {
+              profileExists:
+                !!deliveryProfile,
+
+              registrationCompleted:
+                deliveryProfile
+                  ?.registrationCompleted ||
+                false,
+
+              approvalStatus:
+                deliveryProfile
+                  ?.approvalStatus ||
+                null,
+
+              rejectionReason:
+                deliveryProfile
+                  ?.rejectionReason ||
+                "",
+
+              isActive:
+                deliveryProfile
+                  ?.isActive ||
+                false,
+            }
+          : null,
     });
-
   } catch (error) {
-
-    console.log("❌ LOGIN ERROR:", error);
+    console.log(
+      "❌ LOGIN ERROR:",
+      error
+    );
 
     return res.status(500).json({
-
       success: false,
-
-      message: "Server error"
-
+      message: "Server error",
     });
-
   }
-
 });
 
 module.exports = router;
