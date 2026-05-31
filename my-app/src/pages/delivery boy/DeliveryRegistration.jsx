@@ -2,6 +2,7 @@ import "./DeliveryRegistration.css";
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import bgImage from "../../assets/background.png";
 
 const TOTAL_STEPS = 8;
 
@@ -16,7 +17,20 @@ const STEP_META = [
   { icon: "✅", label: "Permissions" },
 ];
 
-/* ── tiny file-upload button ── */
+const FOOD_ICONS = ["🍕","🍣","🥗","🍜","🥐","🍓","🫐","🥩","🛵","🧁","🌮","🍔"];
+
+/* ── Floating food bubbles (matches Login) ── */
+function FloatingFoods() {
+  return (
+    <div className="dr-floating-foods" aria-hidden="true">
+      {FOOD_ICONS.map((icon, i) => (
+        <span key={i} className="dr-food-bubble" style={{ "--i": i }}>{icon}</span>
+      ))}
+    </div>
+  );
+}
+
+/* ── File upload field ── */
 function FileField({ label, name, accept, file, onChange, preview }) {
   const ref = useRef();
   return (
@@ -54,84 +68,76 @@ function FileField({ label, name, accept, file, onChange, preview }) {
   );
 }
 
+/* ══════════════════════════════════════════
+   MAIN COMPONENT
+══════════════════════════════════════════ */
 export default function DeliveryRegistration() {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user")) || {};
+  const user  = JSON.parse(localStorage.getItem("user")) || {};
   const token = localStorage.getItem("token") || "";
 
-  const [step, setStep] = useState(1);
-  const [errors, setErrors] = useState({});
+  const [step,       setStep]       = useState(1);
+  const [errors,     setErrors]     = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [submitted,  setSubmitted]  = useState(false);
 
-  /* text fields */
   const [form, setForm] = useState({
-    userId: user._id || "",
-    fullName: "",
-    mobile: "",
-    email: user.email || "",
-    dob: "",
-    gender: "",
-    houseNo: "",
-    street: "",
-    area: "",
-    city: "",
-    state: "",
-    pincode: "",
-    aadhaarNumber: "",
-    drivingLicenseNumber: "",
-    vehicleType: "",
-    vehicleNumber: "",
-    bankHolderName: "",
-    bankName: "",
-    accountNumber: "",
-    ifscCode: "",
-    upiId: "",
-    emergencyName: "",
-    emergencyRelation: "",
-    emergencyPhone: "",
-    workType: "",
-    preferredArea: "",
-    workingHours: "",
-    locationPermission: false,
-    termsAccepted: false,
+    userId:                user._id || "",
+    fullName:              "",
+    mobile:                "",
+    email:                 user.email || "",
+    dob:                   "",
+    gender:                "",
+    houseNo:               "",
+    street:                "",
+    area:                  "",
+    city:                  "",
+    state:                 "",
+    pincode:               "",
+    aadhaarNumber:         "",
+    drivingLicenseNumber:  "",
+    vehicleType:           "",
+    vehicleNumber:         "",
+    bankHolderName:        "",
+    bankName:              "",
+    accountNumber:         "",
+    ifscCode:              "",
+    upiId:                 "",
+    emergencyName:         "",
+    emergencyRelation:     "",
+    emergencyPhone:        "",
+    workType:              "",
+    preferredArea:         "",
+    workingHours:          "",
+    locationPermission:    false,
+    termsAccepted:         false,
   });
 
-  /* file fields */
-  const [files, setFiles] = useState({
-    profilePhoto: null,
-    aadhaarFront: null,
-    aadhaarBack: null,
-    drivingLicenseImage: null,
-    vehicleRC: null,
-  });
-
-  /* previews */
+  const [files, setFiles]     = useState({ profilePhoto: null, aadhaarFront: null, aadhaarBack: null, drivingLicenseImage: null, vehicleRC: null });
   const [previews, setPreviews] = useState({});
 
   const set = (key, value) => {
-    setForm((p) => ({ ...p, [key]: value }));
+    setForm((p)   => ({ ...p, [key]: value }));
     setErrors((p) => ({ ...p, [key]: "" }));
   };
 
   const setFile = (key, file) => {
     if (!file) return;
     setFiles((p) => ({ ...p, [key]: file }));
-    const url = URL.createObjectURL(file);
-    setPreviews((p) => ({ ...p, [key]: url }));
-    setErrors((p) => ({ ...p, [key]: "" }));
+    setPreviews((p) => ({ ...p, [key]: URL.createObjectURL(file) }));
+    setErrors((p)  => ({ ...p, [key]: "" }));
   };
 
-  /* ── per-step validation ── */
+  /* ── Per-step validation ── */
   const validate = () => {
     const e = {};
     if (step === 1) {
-      if (!form.fullName.trim())   e.fullName = "Full name is required";
-      if (!form.mobile.trim())     e.mobile   = "Mobile number is required";
+      if (!form.fullName.trim())  e.fullName = "Full name is required";
+      if (!form.mobile.trim())    e.mobile   = "Mobile number is required";
       else if (!/^\d{10}$/.test(form.mobile)) e.mobile = "Enter a valid 10-digit number";
-      if (!form.email.trim())      e.email    = "Email is required";
-      if (!form.dob)               e.dob      = "Date of birth is required";
-      if (!form.gender)            e.gender   = "Please select gender";
+      if (!form.email.trim())     e.email    = "Email is required";
+      if (!form.dob)              e.dob      = "Date of birth is required";
+      if (!form.gender)           e.gender   = "Please select gender";
     }
     if (step === 2) {
       if (!form.houseNo.trim())  e.houseNo  = "Required";
@@ -143,8 +149,8 @@ export default function DeliveryRegistration() {
     if (step === 3) {
       if (!form.aadhaarNumber.trim() || !/^\d{12}$/.test(form.aadhaarNumber))
         e.aadhaarNumber = "Valid 12-digit Aadhaar required";
-      if (!files.aadhaarFront)  e.aadhaarFront  = "Aadhaar front photo required";
-      if (!files.aadhaarBack)   e.aadhaarBack   = "Aadhaar back photo required";
+      if (!files.aadhaarFront)        e.aadhaarFront        = "Aadhaar front photo required";
+      if (!files.aadhaarBack)         e.aadhaarBack         = "Aadhaar back photo required";
       if (!form.drivingLicenseNumber.trim()) e.drivingLicenseNumber = "License number required";
       if (!files.drivingLicenseImage) e.drivingLicenseImage = "License photo required";
     }
@@ -161,14 +167,14 @@ export default function DeliveryRegistration() {
         e.ifscCode = "Valid IFSC code required (e.g. SBIN0001234)";
     }
     if (step === 6) {
-      if (!form.emergencyName.trim())  e.emergencyName  = "Contact name required";
+      if (!form.emergencyName.trim())     e.emergencyName     = "Contact name required";
       if (!form.emergencyRelation.trim()) e.emergencyRelation = "Relationship required";
       if (!form.emergencyPhone.trim() || !/^\d{10}$/.test(form.emergencyPhone))
         e.emergencyPhone = "Valid 10-digit number required";
     }
     if (step === 7) {
-      if (!form.workType)           e.workType    = "Select work type";
-      if (!form.workingHours)       e.workingHours = "Select working hours";
+      if (!form.workType)    e.workType    = "Select work type";
+      if (!form.workingHours) e.workingHours = "Select working hours";
     }
     if (step === 8) {
       if (!form.locationPermission) e.locationPermission = "Location permission is required";
@@ -178,38 +184,20 @@ export default function DeliveryRegistration() {
     return Object.keys(e).length === 0;
   };
 
-  const nextStep = () => {
-    if (validate() && step < TOTAL_STEPS) setStep((s) => s + 1);
-  };
-
-  const prevStep = () => {
-    if (step > 1) setStep((s) => s - 1);
-  };
+  const nextStep = () => { if (validate() && step < TOTAL_STEPS) setStep((s) => s + 1); };
+  const prevStep = () => { if (step > 1) setStep((s) => s - 1); };
 
   const handleSubmit = async () => {
     if (!validate()) return;
     setSubmitting(true);
-
     const fd = new FormData();
-
-    Object.entries(form).forEach(([k, v]) => {
-      fd.append(k, v.toString());
-    });
-
-    Object.entries(files).forEach(([k, v]) => {
-      if (v) fd.append(k, v);
-    });
-
+    Object.entries(form).forEach(([k, v]) => fd.append(k, v.toString()));
+    Object.entries(files).forEach(([k, v]) => { if (v) fd.append(k, v); });
     try {
       await axios.post(
         `${import.meta.env.VITE_API_URL}/api/delivery-partner/register`,
         fd,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` } }
       );
       setSubmitted(true);
       setTimeout(() => navigate("/delivery-review"), 2500);
@@ -220,7 +208,7 @@ export default function DeliveryRegistration() {
     }
   };
 
-  /* ─────────────── SUCCESS STATE ─────────────── */
+  /* ── SUCCESS ── */
   if (submitted) {
     return (
       <div className="dr-success-page">
@@ -234,23 +222,29 @@ export default function DeliveryRegistration() {
     );
   }
 
-  /* ─────────────── MAIN RENDER ─────────────── */
+  /* ── MAIN RENDER ── */
   return (
     <div className="dr-page">
 
-      {/* ── LEFT PANEL ── */}
-      <div className="dr-left">
+      {/* ════ LEFT PANEL ════ */}
+      <div className="dr-left" style={{ backgroundImage: `url(${bgImage})` }}>
+        <div className="dr-left-overlay" />
+        <FloatingFoods />
         <div className="dr-left-inner">
+
+          {/* Brand */}
           <div className="dr-brand">
             <div className="dr-brand-logo">🛵</div>
             <span>Foodie Delivery</span>
           </div>
 
+          {/* Hero */}
           <div className="dr-hero-text">
             <h1>Deliver.<br /><em>Earn.</em><br />Grow.</h1>
             <p>Join hundreds of delivery partners earning flexible income across the city.</p>
           </div>
 
+          {/* Stats */}
           <div className="dr-stats">
             <div className="dr-stat"><strong>₹25K+</strong><span>Avg. Monthly Earnings</span></div>
             <div className="dr-stat"><strong>500+</strong><span>Active Partners</span></div>
@@ -266,7 +260,9 @@ export default function DeliveryRegistration() {
               >
                 <div className="dr-step-dot">
                   {step > i + 1 ? (
-                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M6.5 11.5L3 8l1.4-1.4 2.1 2.1 5.1-5.1L13 5z"/></svg>
+                    <svg viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M6.5 11.5L3 8l1.4-1.4 2.1 2.1 5.1-5.1L13 5z" />
+                    </svg>
                   ) : (
                     <span>{s.icon}</span>
                   )}
@@ -275,14 +271,15 @@ export default function DeliveryRegistration() {
               </div>
             ))}
           </div>
+
         </div>
       </div>
 
-      {/* ── RIGHT PANEL ── */}
+      {/* ════ RIGHT PANEL ════ */}
       <div className="dr-right">
         <div className="dr-card">
 
-          {/* header */}
+          {/* Card header */}
           <div className="dr-card-header">
             <div className="dr-card-step-badge">Step {step} / {TOTAL_STEPS}</div>
             <h2>{STEP_META[step - 1].icon} {STEP_META[step - 1].label}</h2>
@@ -426,7 +423,7 @@ export default function DeliveryRegistration() {
 
               <div className="dr-doc-block">
                 <div className="dr-doc-heading">
-                  <div className="dr-doc-icon">🪪</div>
+                  <div className="dr-doc-icon">🚗</div>
                   <div>
                     <strong>Driving License</strong>
                     <p>Valid DL issued by RTO</p>
@@ -504,14 +501,17 @@ export default function DeliveryRegistration() {
               </div>
               <div className="dr-grid-2">
                 {[
-                  ["bankHolderName", "Account Holder Name", "text",     "Full name as per bank"],
-                  ["bankName",       "Bank Name",           "text",     "e.g. State Bank of India"],
-                  ["accountNumber",  "Account Number",      "text",     "Enter account number"],
-                  ["ifscCode",       "IFSC Code",           "text",     "e.g. SBIN0001234"],
-                  ["upiId",          "UPI ID (optional)",   "text",     "e.g. name@upi"],
-                ].map(([key, lbl, type, ph]) => (
-                  <div className={`dr-field ${key === "bankHolderName" || key === "upiId" ? "dr-field--full" : ""}`} key={key}>
-                    <label>{lbl}{key !== "upiId" && <span className="req"> *</span>}</label>
+                  ["bankHolderName", "Account Holder Name", "text", "Full name as per bank",       true],
+                  ["bankName",       "Bank Name",           "text", "e.g. State Bank of India",    false],
+                  ["accountNumber",  "Account Number",      "text", "Enter account number",        false],
+                  ["ifscCode",       "IFSC Code",           "text", "e.g. SBIN0001234",            false],
+                  ["upiId",          "UPI ID (optional)",   "text", "e.g. name@upi",               true],
+                ].map(([key, lbl, type, ph, full]) => (
+                  <div className={`dr-field ${full ? "dr-field--full" : ""}`} key={key}>
+                    <label>
+                      {lbl}
+                      {key !== "upiId" && <span className="req"> *</span>}
+                    </label>
                     <input
                       type={type}
                       placeholder={ph}
@@ -663,9 +663,9 @@ export default function DeliveryRegistration() {
                   <span className="dr-checkbox-box" />
                   <span>
                     I agree to the{" "}
-                    <a href="/terms" target="_blank">Terms & Conditions</a>
+                    <a href="/terms" target="_blank" rel="noreferrer">Terms & Conditions</a>
                     {" "}and{" "}
-                    <a href="/privacy" target="_blank">Privacy Policy</a>
+                    <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>
                     {" "}of Foodie Delivery Partner Program.
                   </span>
                 </label>
@@ -675,12 +675,12 @@ export default function DeliveryRegistration() {
               <div className="dr-review-summary">
                 <div className="dr-review-title">📋 Review Your Details</div>
                 <div className="dr-review-grid">
-                  <div><span>Name</span><strong>{form.fullName || "—"}</strong></div>
-                  <div><span>Mobile</span><strong>{form.mobile || "—"}</strong></div>
-                  <div><span>City</span><strong>{form.city || "—"}</strong></div>
-                  <div><span>Vehicle</span><strong>{form.vehicleType || "—"}</strong></div>
-                  <div><span>Work Type</span><strong>{form.workType || "—"}</strong></div>
-                  <div><span>Hours</span><strong>{form.workingHours || "—"}</strong></div>
+                  <div><span>Name</span>     <strong>{form.fullName    || "—"}</strong></div>
+                  <div><span>Mobile</span>   <strong>{form.mobile      || "—"}</strong></div>
+                  <div><span>City</span>     <strong>{form.city        || "—"}</strong></div>
+                  <div><span>Vehicle</span>  <strong>{form.vehicleType || "—"}</strong></div>
+                  <div><span>Work Type</span><strong>{form.workType    || "—"}</strong></div>
+                  <div><span>Hours</span>    <strong>{form.workingHours|| "—"}</strong></div>
                 </div>
               </div>
 
@@ -693,25 +693,26 @@ export default function DeliveryRegistration() {
           {/* ── NAVIGATION ── */}
           <div className="dr-nav">
             {step > 1 && (
-              <button className="dr-btn-back" onClick={prevStep}>
-                ← Previous
-              </button>
+              <button className="dr-btn-back" onClick={prevStep}>← Previous</button>
             )}
 
             {step < TOTAL_STEPS ? (
               <button className="dr-btn-next" onClick={nextStep}>
-                Next →
+                Next
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="16" height="16">
+                  <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </button>
             ) : (
               <button
-                className={`dr-btn-submit ${submitting ? "loading" : ""}`}
+                className="dr-btn-submit"
                 onClick={handleSubmit}
                 disabled={submitting}
               >
                 {submitting ? (
                   <><span className="dr-spinner" /> Submitting…</>
                 ) : (
-                  "🚀 Submit Registration"
+                  <>🚀 Submit Registration</>
                 )}
               </button>
             )}
