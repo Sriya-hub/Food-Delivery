@@ -4,42 +4,80 @@ const maintenanceCheck = async (req, res, next) => {
   try {
     const settings = await Settings.findOne();
 
-    // No settings document yet
+    /* No settings found */
     if (!settings) {
       return next();
     }
 
-    // Website not in maintenance mode
+    /* Maintenance disabled */
     if (!settings.maintenanceMode) {
       return next();
     }
 
-    // Allow admin settings APIs
-    if (req.originalUrl.startsWith("/api/admin/settings")) {
+    const now = new Date();
+
+    /* Scheduled Maintenance Check */
+    if (
+      settings.maintenanceStartDate &&
+      settings.maintenanceEndDate
+    ) {
+      const startDate = new Date(
+        settings.maintenanceStartDate
+      );
+
+      const endDate = new Date(
+        settings.maintenanceEndDate
+      );
+
+      /* Outside maintenance window */
+      if (
+        now < startDate ||
+        now > endDate
+      ) {
+        return next();
+      }
+    }
+
+    /* Allow login route */
+    if (
+      req.originalUrl.startsWith(
+        "/api/auth/login"
+      )
+    ) {
       return next();
     }
 
-    // Allow admin APIs
-    if (req.originalUrl.startsWith("/api/admin")) {
+    /* Allow admin routes */
+    if (
+      req.originalUrl.startsWith(
+        "/api/admin"
+      )
+    ) {
       return next();
     }
 
-    // Allow root health check
+    /* Allow health check */
     if (req.originalUrl === "/") {
       return next();
     }
 
-    // Block everything else
+    /* Block everything else */
     return res.status(503).json({
       success: false,
       maintenance: true,
       message:
-        "Website is currently under maintenance. Please try again later.",
+        "Website is currently under maintenance.",
+      startDate:
+        settings.maintenanceStartDate,
+      endDate:
+        settings.maintenanceEndDate,
     });
   } catch (error) {
-    console.error("Maintenance Check Error:", error);
+    console.error(
+      "Maintenance Check Error:",
+      error
+    );
 
-    // Don't break the website if DB fails
     next();
   }
 };

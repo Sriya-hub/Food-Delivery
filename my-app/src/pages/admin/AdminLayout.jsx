@@ -19,7 +19,6 @@ export default function AdminLayout() {
       <div className="admin-main">
         <Routes>
 
-          {/* Dashboard */}
           <Route
             path="/"
             element={
@@ -30,7 +29,6 @@ export default function AdminLayout() {
             }
           />
 
-          {/* Merchant Approvals */}
           <Route
             path="/merchants"
             element={
@@ -41,7 +39,6 @@ export default function AdminLayout() {
             }
           />
 
-          {/* Customers */}
           <Route
             path="/customers"
             element={
@@ -52,7 +49,6 @@ export default function AdminLayout() {
             }
           />
 
-          {/* Delivery Partners */}
           <Route
             path="/delivery"
             element={
@@ -63,7 +59,6 @@ export default function AdminLayout() {
             }
           />
 
-          {/* Settings */}
           <Route
             path="/settings"
             element={
@@ -74,7 +69,6 @@ export default function AdminLayout() {
             }
           />
 
-          {/* Fallback */}
           <Route
             path="*"
             element={<Navigate to="/admin" replace />}

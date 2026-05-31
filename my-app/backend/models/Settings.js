@@ -2,10 +2,28 @@ const mongoose = require("mongoose");
 
 const settingsSchema = new mongoose.Schema(
   {
+    /* =========================
+       MAINTENANCE
+    ========================= */
+
     maintenanceMode: {
       type: Boolean,
       default: false,
     },
+
+    maintenanceStartDate: {
+      type: Date,
+      default: null,
+    },
+
+    maintenanceEndDate: {
+      type: Date,
+      default: null,
+    },
+
+    /* =========================
+       STORE SETTINGS
+    ========================= */
 
     storeOpen: {
       type: Boolean,
@@ -47,4 +65,7 @@ const settingsSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Settings", settingsSchema);
+module.exports = mongoose.model(
+  "Settings",
+  settingsSchema
+);

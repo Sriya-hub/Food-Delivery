@@ -6,6 +6,7 @@ const router = express.Router();
 
 const User = require("../models/User");
 const DeliveryPartner = require("../models/DeliveryPartner");
+const Settings = require("../models/Settings");
 
 /* =========================
    ROUTE LOADED CHECK
@@ -90,6 +91,24 @@ router.post("/login", async (req, res) => {
     }
 
     /* =========================
+       MAINTENANCE CHECK
+    ========================= */
+
+    const settings = await Settings.findOne();
+
+    if (
+      settings?.maintenanceMode === true &&
+      user.role !== "admin"
+    ) {
+      return res.status(503).json({
+        success: false,
+        maintenance: true,
+        message:
+          "Website is currently under maintenance. Please try again later.",
+      });
+    }
+
+    /* =========================
        DELIVERY PROFILE CHECK
     ========================= */
 
@@ -155,10 +174,6 @@ router.post("/login", async (req, res) => {
         registrationCompleted:
           user.registrationCompleted,
       },
-
-      /* =========================
-         DELIVERY STATUS
-      ========================= */
 
       deliveryStatus:
         user.role === "delivery"

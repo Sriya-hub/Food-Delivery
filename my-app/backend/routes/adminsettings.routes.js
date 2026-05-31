@@ -44,35 +44,68 @@ router.put("/", async (req, res) => {
     }
 
     const allowedUpdates = {
-      maintenanceMode: req.body.maintenanceMode,
-      storeOpen: req.body.storeOpen,
-      acceptOrders: req.body.acceptOrders,
-      acceptCOD: req.body.acceptCOD,
-      acceptOnlinePayments: req.body.acceptOnlinePayments,
-      deliveryAvailable: req.body.deliveryAvailable,
-      minimumOrderAmount: req.body.minimumOrderAmount,
-      deliveryRadiusKm: req.body.deliveryRadiusKm,
+      /* Maintenance */
+      maintenanceMode:
+        req.body.maintenanceMode,
+
+      maintenanceStartDate:
+        req.body.maintenanceStartDate,
+
+      maintenanceEndDate:
+        req.body.maintenanceEndDate,
+
+      /* Store */
+      storeOpen:
+        req.body.storeOpen,
+
+      acceptOrders:
+        req.body.acceptOrders,
+
+      acceptCOD:
+        req.body.acceptCOD,
+
+      acceptOnlinePayments:
+        req.body.acceptOnlinePayments,
+
+      deliveryAvailable:
+        req.body.deliveryAvailable,
+
+      minimumOrderAmount:
+        req.body.minimumOrderAmount,
+
+      deliveryRadiusKm:
+        req.body.deliveryRadiusKm,
     };
 
-    Object.keys(allowedUpdates).forEach((key) => {
-      if (allowedUpdates[key] !== undefined) {
-        settings[key] = allowedUpdates[key];
+    Object.keys(allowedUpdates).forEach(
+      (key) => {
+        if (
+          allowedUpdates[key] !== undefined
+        ) {
+          settings[key] =
+            allowedUpdates[key];
+        }
       }
-    });
+    );
 
     await settings.save();
 
     res.status(200).json({
       success: true,
-      message: "Settings updated successfully",
+      message:
+        "Settings updated successfully",
       settings,
     });
   } catch (error) {
-    console.error("Update Settings Error:", error);
+    console.error(
+      "Update Settings Error:",
+      error
+    );
 
     res.status(500).json({
       success: false,
-      message: "Failed to update settings",
+      message:
+        "Failed to update settings",
     });
   }
 });

@@ -3,48 +3,59 @@ import axios from "axios";
 import "./AdminSettings.css";
 
 const API =
-  import.meta.env.VITE_API_URL || "http://localhost:5000";
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5000";
 
 export default function AdminSettings() {
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [settings, setSettings] = useState({
-    maintenanceMode: false,
-    storeOpen: true,
-    acceptOrders: true,
-    acceptCOD: true,
-    acceptOnlinePayments: true,
-    deliveryAvailable: true,
-    minimumOrderAmount: 0,
-    deliveryRadiusKm: 10,
-  });
+  const [saving, setSaving] =
+    useState(false);
+
+  const [settings, setSettings] =
+    useState({
+      maintenanceMode: false,
+
+      maintenanceStartDate: "",
+
+      maintenanceEndDate: "",
+    });
 
   useEffect(() => {
-    fetchSettings();
+    loadSettings();
   }, []);
 
-  const fetchSettings = async () => {
+  const loadSettings = async () => {
     try {
       const res = await axios.get(
         `${API}/api/admin/settings`
       );
 
-      if (res.data?.settings) {
-        setSettings(res.data.settings);
-      }
-    } catch (error) {
-      console.error(error);
+      const data =
+        res.data.settings || {};
+
+      setSettings({
+        maintenanceMode:
+          data.maintenanceMode || false,
+
+        maintenanceStartDate:
+          data.maintenanceStartDate
+            ? data.maintenanceStartDate
+                .slice(0, 16)
+            : "",
+
+        maintenanceEndDate:
+          data.maintenanceEndDate
+            ? data.maintenanceEndDate
+                .slice(0, 16)
+            : "",
+      });
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleToggle = (field) => {
-    setSettings((prev) => ({
-      ...prev,
-      [field]: !prev[field],
-    }));
   };
 
   const saveSettings = async () => {
@@ -53,131 +64,110 @@ export default function AdminSettings() {
 
       await axios.put(
         `${API}/api/admin/settings`,
-        settings
+        {
+          maintenanceMode:
+            settings.maintenanceMode,
+
+          maintenanceStartDate:
+            settings.maintenanceStartDate,
+
+          maintenanceEndDate:
+            settings.maintenanceEndDate,
+        }
       );
 
-      alert("Settings updated successfully");
-    } catch (error) {
-      console.error(error);
-      alert("Failed to update settings");
+      alert(
+        "Settings updated successfully"
+      );
+    } catch (err) {
+      console.error(err);
+
+      alert(
+        "Failed to update settings"
+      );
     } finally {
       setSaving(false);
     }
   };
 
   if (loading) {
-    return <div className="settings-loading">Loading...</div>;
+    return (
+      <div className="settings-loading">
+        Loading...
+      </div>
+    );
   }
 
   return (
-    <div className="admin-settings">
-
-      <h2>Website Settings</h2>
-
+    <div className="settings-page">
       <div className="settings-card">
 
+        <h2>
+          Website Maintenance Settings
+        </h2>
+
         <div className="setting-row">
-          <span>Maintenance Mode</span>
+          <label>
+            Maintenance Mode
+          </label>
 
           <input
             type="checkbox"
-            checked={settings.maintenanceMode}
-            onChange={() =>
-              handleToggle("maintenanceMode")
+            checked={
+              settings.maintenanceMode
             }
-          />
-        </div>
-
-        <div className="setting-row">
-          <span>Store Open</span>
-
-          <input
-            type="checkbox"
-            checked={settings.storeOpen}
-            onChange={() =>
-              handleToggle("storeOpen")
-            }
-          />
-        </div>
-
-        <div className="setting-row">
-          <span>Accept Orders</span>
-
-          <input
-            type="checkbox"
-            checked={settings.acceptOrders}
-            onChange={() =>
-              handleToggle("acceptOrders")
-            }
-          />
-        </div>
-
-        <div className="setting-row">
-          <span>Accept COD</span>
-
-          <input
-            type="checkbox"
-            checked={settings.acceptCOD}
-            onChange={() =>
-              handleToggle("acceptCOD")
-            }
-          />
-        </div>
-
-        <div className="setting-row">
-          <span>Accept Online Payments</span>
-
-          <input
-            type="checkbox"
-            checked={settings.acceptOnlinePayments}
-            onChange={() =>
-              handleToggle("acceptOnlinePayments")
-            }
-          />
-        </div>
-
-        <div className="setting-row">
-          <span>Delivery Available</span>
-
-          <input
-            type="checkbox"
-            checked={settings.deliveryAvailable}
-            onChange={() =>
-              handleToggle("deliveryAvailable")
-            }
-          />
-        </div>
-
-        <div className="setting-row">
-          <span>Minimum Order Amount</span>
-
-          <input
-            type="number"
-            value={settings.minimumOrderAmount}
             onChange={(e) =>
               setSettings({
                 ...settings,
-                minimumOrderAmount:
-                  Number(e.target.value),
+                maintenanceMode:
+                  e.target.checked,
               })
             }
           />
         </div>
 
-        <div className="setting-row">
-          <span>Delivery Radius (KM)</span>
+        <div className="setting-group">
+
+          <label>
+            Maintenance Start
+          </label>
 
           <input
-            type="number"
-            value={settings.deliveryRadiusKm}
+            type="datetime-local"
+            value={
+              settings.maintenanceStartDate
+            }
             onChange={(e) =>
               setSettings({
                 ...settings,
-                deliveryRadiusKm:
-                  Number(e.target.value),
+                maintenanceStartDate:
+                  e.target.value,
               })
             }
           />
+
+        </div>
+
+        <div className="setting-group">
+
+          <label>
+            Maintenance End
+          </label>
+
+          <input
+            type="datetime-local"
+            value={
+              settings.maintenanceEndDate
+            }
+            onChange={(e) =>
+              setSettings({
+                ...settings,
+                maintenanceEndDate:
+                  e.target.value,
+              })
+            }
+          />
+
         </div>
 
         <button
@@ -185,7 +175,9 @@ export default function AdminSettings() {
           onClick={saveSettings}
           disabled={saving}
         >
-          {saving ? "Saving..." : "Save Settings"}
+          {saving
+            ? "Saving..."
+            : "Save Settings"}
         </button>
 
       </div>
