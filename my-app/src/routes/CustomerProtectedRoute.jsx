@@ -5,8 +5,9 @@ export default function CustomerProtectedRoute({ children }) {
   const role  = localStorage.getItem("role");
   const location = useLocation();
 
+  console.log("🔒 Protected check → token:", token, "role:", role);
+
   if (!token || role !== "customer") {
-    // Preserve the intended destination so we can redirect back after login
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
