@@ -311,7 +311,6 @@ function Login() {
           const now  = new Date();
           const from = s.maintenanceStartDate ? new Date(s.maintenanceStartDate) : null;
           const to   = s.maintenanceEndDate   ? new Date(s.maintenanceEndDate)   : null;
-          /* show maintenance only if within the window */
           const inWindow = (!from || now >= from) && (!to || now <= to);
           if (inWindow) {
             setMaintenance(true);
@@ -320,7 +319,17 @@ function Login() {
             return;
           }
         }
-      } catch (_) { /* ignore — let login proceed normally */ }
+      } catch (err) {
+        /* If the settings API itself returns 503 maintenance response */
+        const d = err.response?.data;
+        if (err.response?.status === 503 && d?.maintenance) {
+          setMaintenance(true);
+          setMaintStart(d.startDate || null);
+          setMaintEnd(d.endDate || null);
+          return;
+        }
+        /* Any other error — just show login normally */
+      }
       setTimeout(() => setMounted(true), 50);
     })();
   }, []);
@@ -389,10 +398,20 @@ function Login() {
       }, 1200);
 
     } catch (error) {
+      const errData = error.response?.data;
+      /* 503 = maintenance mode active (backend middleware) */
+      if (error.response?.status === 503 && errData?.maintenance) {
+        setMaintStart(errData.startDate || null);
+        setMaintEnd(errData.endDate || null);
+        setShowAdminLogin(false);
+        setMounted(false);
+        setMaintenance(true);
+        return;
+      }
       if (error.response?.status === 403) {
         toast.error("Your account has been blocked. Please contact support.");
       } else {
-        toast.error(error.response?.data?.message || "Login failed. Please try again.");
+        toast.error(errData?.message || "Login failed. Please try again.");
       }
     } finally {
       setLoading(false);

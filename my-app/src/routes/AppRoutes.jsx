@@ -9,6 +9,7 @@ import OrderSuccess         from "../pages/customer/OrderSuccess";
 import CustomerOrders       from "../pages/customer/CustomerOrders";
 import Profile              from "../pages/customer/Profile";
 import CustomerReservations from "../pages/customer/CustomerReservation";
+import CustomerProtectedRoute from "./CustomerProtectedRoute";
 
 /* ── Auth ── */
 import Login          from "../pages/auth/Login";
@@ -20,20 +21,23 @@ import MerchantRegistration from "../pages/merchant/MerchantRegistration";
 import WaitingApproval      from "../pages/merchant/WaitingApproval";
 import MerchantDashboard    from "../pages/merchant/MerchantDashboard";
 import MerchantBookings     from "../pages/merchant/MerchantBookings";
+import MerchantProtectedRoute from "./MerchantProtectedRoute";
 
 /* ── Delivery ── */
 import DeliveryRegistration from "../pages/delivery boy/DeliveryRegistration";
 import DeliveryReview       from "../pages/delivery boy/DeliveryReview";
 import DeliveryRejected     from "../pages/delivery boy/DeliveryRejected";
 import DeliveryDashboard    from "../pages/delivery boy/DeliveryDashboard";
+import DeliveryProtectedRoute from "./DeliveryProtectedRoute";
 
 /* ── Admin ── */
 import AdminLayout    from "../pages/admin/AdminLayout";
 import AdminHome      from "../pages/admin/Home";
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminCustomers from "../pages/admin/AdminCustomers";
-import AdminDelivery  from "../pages/admin/AdminDelivery"; 
-import AdminSettings from "../pages/admin/AdminSettings";
+import AdminDelivery  from "../pages/admin/AdminDelivery";
+import AdminSettings  from "../pages/admin/AdminSettings";
+import AdminProtectedRoute from "./AdminProtectedRoute";
 
 /* ══════════════════════════════
    404
@@ -90,41 +94,126 @@ export default function AppRoutes() {
     <BrowserRouter>
       <Routes>
 
-        {/* ── Customer ── */}
-        <Route path="/"                       element={<Home />} />
-        <Route path="/restaurant/:merchantId" element={<RestaurantDetails />} />
-        <Route path="/cart"                   element={<Cart />} />
-        <Route path="/checkout"               element={<Checkout />} />
-        <Route path="/order-success/:orderId" element={<OrderSuccess />} />
-        <Route path="/my-orders"              element={<CustomerOrders />} />
-        <Route path="/profile"                element={<Profile />} />
-        <Route path="/reservations"           element={<CustomerReservations />} />
-
-        {/* ── Auth ── */}
+        {/* ── Auth (public) ── */}
         <Route path="/login"           element={<Login />} />
         <Route path="/signup"          element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        {/* ── Merchant ── */}
-        <Route path="/merchant-registration" element={<MerchantRegistration />} />
-        <Route path="/waiting-approval"      element={<WaitingApproval />} />
-        <Route path="/merchant/dashboard"    element={<MerchantDashboard />} />
-        <Route path="/merchant/bookings"     element={<MerchantBookings />} />
-
-        {/* ── Delivery ── */}
+        {/* ── Registration / status pages (public) ── */}
+        <Route path="/merchant-registration"        element={<MerchantRegistration />} />
+        <Route path="/waiting-approval"             element={<WaitingApproval />} />
         <Route path="/deliverypartner-registration" element={<DeliveryRegistration />} />
-        <Route path="/delivery-review"       element={<DeliveryReview />} />
-        <Route path="/delivery-rejected"     element={<DeliveryRejected />} />
-        <Route path="/delivery/dashboard"    element={<DeliveryDashboard />} />
+        <Route path="/delivery-review"              element={<DeliveryReview />} />
+        <Route path="/delivery-rejected"            element={<DeliveryRejected />} />
 
-        {/* ── Admin — nested inside AdminLayout ── */}
-        <Route path="/admin" element={<AdminLayout />}>
+        {/* ── Customer (ALL protected) ── */}
+        <Route
+          path="/"
+          element={
+            <CustomerProtectedRoute>
+              <Home />
+            </CustomerProtectedRoute>
+          }
+        />
+        <Route
+          path="/restaurant/:merchantId"
+          element={
+            <CustomerProtectedRoute>
+              <RestaurantDetails />
+            </CustomerProtectedRoute>
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            <CustomerProtectedRoute>
+              <Cart />
+            </CustomerProtectedRoute>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <CustomerProtectedRoute>
+              <Checkout />
+            </CustomerProtectedRoute>
+          }
+        />
+        <Route
+          path="/order-success/:orderId"
+          element={
+            <CustomerProtectedRoute>
+              <OrderSuccess />
+            </CustomerProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-orders"
+          element={
+            <CustomerProtectedRoute>
+              <CustomerOrders />
+            </CustomerProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <CustomerProtectedRoute>
+              <Profile />
+            </CustomerProtectedRoute>
+          }
+        />
+        <Route
+          path="/reservations"
+          element={
+            <CustomerProtectedRoute>
+              <CustomerReservations />
+            </CustomerProtectedRoute>
+          }
+        />
+
+        {/* ── Merchant (ALL protected) ── */}
+        <Route
+          path="/merchant/dashboard"
+          element={
+            <MerchantProtectedRoute>
+              <MerchantDashboard />
+            </MerchantProtectedRoute>
+          }
+        />
+        <Route
+          path="/merchant/bookings"
+          element={
+            <MerchantProtectedRoute>
+              <MerchantBookings />
+            </MerchantProtectedRoute>
+          }
+        />
+
+        {/* ── Delivery (ALL protected) ── */}
+        <Route
+          path="/delivery/dashboard"
+          element={
+            <DeliveryProtectedRoute>
+              <DeliveryDashboard />
+            </DeliveryProtectedRoute>
+          }
+        />
+
+        {/* ── Admin — nested inside AdminLayout (ALL protected) ── */}
+        <Route
+          path="/admin"
+          element={
+            <AdminProtectedRoute>
+              <AdminLayout />
+            </AdminProtectedRoute>
+          }
+        >
           <Route index            element={<AdminHome />} />
           <Route path="merchants" element={<AdminDashboard />} />
           <Route path="customers" element={<AdminCustomers />} />
-          <Route path="delivery"  element={<AdminDelivery />} /> 
+          <Route path="delivery"  element={<AdminDelivery />} />
           <Route path="settings"  element={<AdminSettings />} />
-
         </Route>
 
         {/* ── 404 ── */}
