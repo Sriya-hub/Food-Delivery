@@ -1,18 +1,58 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import "./Home.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+/* ── Animated Counter ── */
+function CountUp({ target, duration = 1000 }) {
+  const [val, setVal] = useState(0);
+  const started = useRef(false);
+  const ref = useRef(null);
+  const num = Math.max(0, parseInt(target, 10) || 0);
+
+  useEffect(() => {
+    started.current = false;
+    setVal(0);
+  }, [num]);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let cancelled = false;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !started.current) {
+        started.current = true;
+        const start = performance.now();
+        const tick = (now) => {
+          if (cancelled) return;
+          const p = Math.min((now - start) / duration, 1);
+          const ease = 1 - Math.pow(1 - p, 3);
+          setVal(Math.round(ease * num));
+          if (p < 1) requestAnimationFrame(tick);
+          else setVal(num);
+        };
+        requestAnimationFrame(tick);
+        obs.disconnect();
+      }
+    }, { threshold: 0.3 });
+    obs.observe(el);
+    return () => { cancelled = true; obs.disconnect(); };
+  }, [num, duration]);
+
+  return <span ref={ref}>{(val ?? 0).toLocaleString()}</span>;
+}
+
 function Home() {
   const [stats, setStats] = useState({
-    totalMerchants:    0,
-    activeMerchants:   0,
-    blockedMerchants:  0,
-    rejectedMerchants: 0,
-    pendingMerchants:  0,
-    totalCustomers:    0,
-    blockedCustomers:  0,
+    totalMerchants:       0,
+    activeMerchants:      0,
+    blockedMerchants:     0,
+    rejectedMerchants:    0,
+    pendingMerchants:     0,
+    totalCustomers:       0,
+    blockedCustomers:     0,
+    totalDeliveryPartners: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -20,22 +60,26 @@ function Home() {
 
   const fetchStats = async () => {
     try {
-      const [merchantRes, customerRes] = await Promise.all([
+      const [merchantRes, customerRes, analyticsRes] = await Promise.all([
         axios.get(`${API_URL}/api/admin/merchants`),
         axios.get(`${API_URL}/api/admin/customers`),
+        axios.get(`${API_URL}/api/admin/analytics`),
       ]);
 
-      const merchants = merchantRes.data;
-      const customers = customerRes.data.customers ?? [];
+      const merchants             = merchantRes.data;
+      const customers             = customerRes.data.customers ?? [];
+      // Use the analytics endpoint for delivery partners — same source Analytics page uses
+      const deliveryPartnersCount = analyticsRes.data?.users?.deliveryPartners ?? 0;
 
       setStats({
-        totalMerchants:    merchants.length,
-        activeMerchants:   merchants.filter((m) =>  m.isApproved && !m.isBlocked).length,
-        blockedMerchants:  merchants.filter((m) =>  m.isBlocked).length,
-        rejectedMerchants: merchants.filter((m) =>  m.isRejected).length,
-        pendingMerchants:  merchants.filter((m) => !m.isApproved && !m.isRejected && !m.isBlocked).length,
-        totalCustomers:    customers.length,
-        blockedCustomers:  customers.filter((c) =>  c.isBlocked).length,
+        totalMerchants:        merchants.length,
+        activeMerchants:       merchants.filter((m) =>  m.isApproved && !m.isBlocked).length,
+        blockedMerchants:      merchants.filter((m) =>  m.isBlocked).length,
+        rejectedMerchants:     merchants.filter((m) =>  m.isRejected).length,
+        pendingMerchants:      merchants.filter((m) => !m.isApproved && !m.isRejected && !m.isBlocked).length,
+        totalCustomers:        customers.length,
+        blockedCustomers:      customers.filter((c) =>  c.isBlocked).length,
+        totalDeliveryPartners: deliveryPartnersCount,
       });
     } catch (error) {
       console.log(error);
@@ -45,13 +89,14 @@ function Home() {
   };
 
   const CARDS = [
-    { label: "Total Merchants",   value: stats.totalMerchants,    color: "orange", icon: <StoreIcon /> },
-    { label: "Total Customers",   value: stats.totalCustomers,    color: "purple", icon: <UsersIcon /> },
-    { label: "Active Merchants",  value: stats.activeMerchants,   color: "green",  icon: <ActiveIcon /> },
-    { label: "Pending Approval",  value: stats.pendingMerchants,  color: "amber",  icon: <ClockIcon /> },
-    { label: "Blocked Merchants", value: stats.blockedMerchants,  color: "red",    icon: <BlockIcon /> },
-    { label: "Blocked Customers", value: stats.blockedCustomers,  color: "rose",   icon: <UserBlockIcon /> },
-    { label: "Rejected",          value: stats.rejectedMerchants, color: "gray",   icon: <XIcon /> },
+    { label: "Total Merchants",      value: stats.totalMerchants,        color: "orange", icon: <StoreIcon />,        delay: 0   },
+    { label: "Total Customers",      value: stats.totalCustomers,        color: "purple", icon: <UsersIcon />,        delay: 60  },
+    { label: "Delivery Partners",    value: stats.totalDeliveryPartners, color: "teal",   icon: <DeliveryIcon />,     delay: 120 },
+    { label: "Active Merchants",     value: stats.activeMerchants,       color: "green",  icon: <ActiveIcon />,       delay: 180 },
+    { label: "Pending Approval",     value: stats.pendingMerchants,      color: "amber",  icon: <ClockIcon />,        delay: 240 },
+    { label: "Blocked Merchants",    value: stats.blockedMerchants,      color: "red",    icon: <BlockIcon />,        delay: 300 },
+    { label: "Blocked Customers",    value: stats.blockedCustomers,      color: "rose",   icon: <UserBlockIcon />,    delay: 360 },
+    { label: "Rejected",             value: stats.rejectedMerchants,     color: "gray",   icon: <XIcon />,            delay: 420 },
   ];
 
   return (
@@ -65,14 +110,23 @@ function Home() {
 
       {/* ── Stat Cards ── */}
       {loading ? (
-        <div className="home-loading">Loading stats…</div>
+        <div className="home-loading">
+          <div className="home-spinner" />
+          <span>Loading stats…</span>
+        </div>
       ) : (
         <div className="home-grid">
-          {CARDS.map(({ label, value, color, icon }) => (
-            <div className={`home-card home-card--${color}`} key={label}>
+          {CARDS.map(({ label, value, color, icon, delay }) => (
+            <div
+              className={`home-card home-card--${color}`}
+              key={label}
+              style={{ animationDelay: `${delay}ms` }}
+            >
               <div className="card-icon">{icon}</div>
               <div className="card-body">
-                <span className="card-value">{value}</span>
+                <span className="card-value">
+                  <CountUp target={value} />
+                </span>
                 <span className="card-label">{label}</span>
               </div>
               <div className="card-glow" />
@@ -87,6 +141,11 @@ function Home() {
           <div className="summary-item">
             <span className="summary-dot dot-purple" />
             <span>{stats.totalCustomers} registered customers</span>
+          </div>
+          <div className="summary-divider" />
+          <div className="summary-item">
+            <span className="summary-dot dot-teal" />
+            <span>{stats.totalDeliveryPartners} delivery partners</span>
           </div>
           <div className="summary-divider" />
           <div className="summary-item">
@@ -118,6 +177,7 @@ function Home() {
 /* ── Icons ── */
 function StoreIcon()     { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9l1-5h16l1 5"/><path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M5 21V9M19 9v12H5"/><rect x="9" y="14" width="6" height="7" rx="1"/></svg>; }
 function UsersIcon()     { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>; }
+function DeliveryIcon()  { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="2"/><circle cx="12" cy="21" r="1"/><circle cx="20" cy="21" r="1"/></svg>; }
 function ActiveIcon()    { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="20 6 9 17 4 12"/></svg>; }
 function ClockIcon()     { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>; }
 function BlockIcon()     { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>; }

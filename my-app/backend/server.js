@@ -9,6 +9,11 @@ const path = require("path");
 const connectDB = require("./config/db");
 
 /* =========================
+   MAINTENANCE MIDDLEWARE
+========================= */
+const maintenanceCheck = require("./middleware/maintenanceCheck");
+
+/* =========================
    LOAD ENV
 ========================= */
 dotenv.config();
@@ -31,6 +36,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /* =========================
+   MAINTENANCE MODE
+========================= */
+app.use(maintenanceCheck);
+
+/* =========================
    STATIC FOLDER
 ========================= */
 app.use(
@@ -51,6 +61,31 @@ app.use("/api/auth", require("./routes/forgotpassword.routes"));
 
 /* ADMIN */
 app.use("/api/admin", require("./routes/admin.routes"));
+
+/* ADMIN SETTINGS */
+app.use(
+  "/api/admin/settings",
+  require("./routes/adminsettings.routes")
+);
+
+/* ADMIN ANALYTICS */
+app.use(
+  "/api/admin/analytics",
+  require("./routes/adminAnalytics.routes")
+);
+
+app.use(
+  "/api/admin/logs",
+  require("./routes/log.routes")
+);
+
+/* PUBLIC SETTINGS — used by frontend to read maintenanceMode
+   Must be registered so /api/settings is not blocked by maintenanceCheck
+   (it is already in the exclusions list inside the middleware)       */
+app.use(
+  "/api/settings",
+  require("./routes/adminsettings.routes")
+);
 
 /* MERCHANT */
 app.use("/api/merchant", require("./routes/merchant.routes"));
@@ -101,6 +136,24 @@ app.use(
 app.use(
   "/api",
   require("./routes/profile.routes")
+);
+
+/* =========================
+   DELIVERY PARTNER
+========================= */
+app.use(
+  "/api/delivery-partner",
+  require("./routes/deliveryRegistration.routes")
+);
+
+app.use(
+  "/api/delivery",
+  require("./routes/deliveryProfile.routes")
+);
+
+app.use(
+  "/api/admin",
+  require("./routes/adminDelivery.routes")
 );
 
 /* =========================

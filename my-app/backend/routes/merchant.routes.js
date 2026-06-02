@@ -3,6 +3,7 @@ const router  = express.Router();
 const multer  = require("multer");
 const path    = require("path");
 const User    = require("../models/User");
+const createLog = require("../utils/createLog");
 
 /* =========================
    MULTER CONFIG
@@ -41,7 +42,6 @@ router.put("/register/:id", upload.single("restaurantImage"), async (req, res) =
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // Basic fields
     user.restaurantName    = req.body.restaurantName;
     user.phoneNumber       = req.body.phoneNumber;
     user.restaurantAddress = req.body.restaurantAddress;
@@ -49,18 +49,16 @@ router.put("/register/:id", upload.single("restaurantImage"), async (req, res) =
     user.openingTime       = req.body.openingTime;
     user.closingTime       = req.body.closingTime;
 
-    // Location from browser Geolocation API (no geocoding)
     const latitude  = parseFloat(req.body.latitude);
     const longitude = parseFloat(req.body.longitude);
 
     if (!isNaN(latitude) && !isNaN(longitude)) {
       user.location = {
         type:        "Point",
-        coordinates: [longitude, latitude], // GeoJSON: [lng, lat]
+        coordinates: [longitude, latitude],
       };
     }
 
-    // Restaurant image
     if (req.file) {
       user.restaurantImage = `/uploads/${req.file.filename}`;
     }
@@ -69,6 +67,13 @@ router.put("/register/:id", upload.single("restaurantImage"), async (req, res) =
     user.isApproved            = false;
 
     await user.save();
+
+    await createLog({
+      user:   user.name,
+      role:   user.role,
+      action: "Submitted merchant registration",
+      status: "Success",
+    });
 
     res.status(200).json({
       success: true,
@@ -87,9 +92,9 @@ router.put("/register/:id", upload.single("restaurantImage"), async (req, res) =
 router.get("/approved-restaurants", async (req, res) => {
   try {
     const restaurants = await User.find({
-      role:                    "merchant",
-      registrationCompleted:   true,
-      isApproved:              true,
+      role:                  "merchant",
+      registrationCompleted: true,
+      isApproved:            true,
     })
       .select(
         "_id restaurantName restaurantType restaurantAddress openingTime closingTime phoneNumber restaurantImage tableReservationEnabled isOnline location"

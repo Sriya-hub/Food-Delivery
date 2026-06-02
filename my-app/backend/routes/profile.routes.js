@@ -2,11 +2,10 @@ const express = require("express");
 const jwt     = require("jsonwebtoken");
 const router  = express.Router();
 const User    = require("../models/User");
+const createLog = require("../utils/createLog");
 
 /* ══════════════════════════════════════════
    AUTH MIDDLEWARE
-   Reads the Bearer token from Authorization
-   header and attaches req.userId
 ══════════════════════════════════════════ */
 function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -25,7 +24,6 @@ function authMiddleware(req, res, next) {
 
 /* ══════════════════════════════════════════
    GET /profile
-   Returns the current user's profile data
 ══════════════════════════════════════════ */
 router.get("/profile", authMiddleware, async (req, res) => {
   try {
@@ -53,14 +51,11 @@ router.get("/profile", authMiddleware, async (req, res) => {
 
 /* ══════════════════════════════════════════
    PUT /profile
-   Updates phoneNumber and/or deliveryAddresses
-   name & email are intentionally excluded
 ══════════════════════════════════════════ */
 router.put("/profile", authMiddleware, async (req, res) => {
   try {
     const { phoneNumber, deliveryAddresses } = req.body;
 
-    /* Build update object — only allowed fields */
     const updateData = {};
     if (phoneNumber       !== undefined) updateData.phoneNumber       = phoneNumber;
     if (deliveryAddresses !== undefined) updateData.deliveryAddresses = deliveryAddresses;
@@ -74,6 +69,13 @@ router.put("/profile", authMiddleware, async (req, res) => {
     if (!updatedUser) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
+
+    await createLog({
+      user:   updatedUser.name,
+      role:   updatedUser.role,
+      action: "Updated own profile",
+      status: "Success",
+    });
 
     return res.status(200).json({
       success: true,
@@ -97,7 +99,6 @@ router.put("/profile", authMiddleware, async (req, res) => {
 
 /* ══════════════════════════════════════════
    POST /profile/address
-   Add a single delivery address
 ══════════════════════════════════════════ */
 router.post("/profile/address", authMiddleware, async (req, res) => {
   try {
@@ -107,13 +108,19 @@ router.post("/profile/address", authMiddleware, async (req, res) => {
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-    /* If new address is default, unset all others */
     if (isDefault) {
       user.deliveryAddresses.forEach(a => { a.isDefault = false; });
     }
 
     user.deliveryAddresses.push({ label, line1, line2, city, pincode, isDefault: !!isDefault });
     await user.save();
+
+    await createLog({
+      user:   user.name,
+      role:   user.role,
+      action: "Added a new delivery address",
+      status: "Success",
+    });
 
     return res.status(201).json({
       success: true,
@@ -128,7 +135,6 @@ router.post("/profile/address", authMiddleware, async (req, res) => {
 
 /* ══════════════════════════════════════════
    DELETE /profile/address/:addressId
-   Remove a delivery address
 ══════════════════════════════════════════ */
 router.delete("/profile/address/:addressId", authMiddleware, async (req, res) => {
   try {
@@ -139,6 +145,13 @@ router.delete("/profile/address/:addressId", authMiddleware, async (req, res) =>
       a => a._id.toString() !== req.params.addressId
     );
     await user.save();
+
+    await createLog({
+      user:   user.name,
+      role:   user.role,
+      action: "Removed a delivery address",
+      status: "Success",
+    });
 
     return res.status(200).json({
       success: true,

@@ -2,11 +2,11 @@ const express   = require("express");
 const mongoose  = require("mongoose");
 const router    = express.Router();
 const Order     = require("../models/Order");
-const User      = require("../models/User"); // ← make sure this path is correct
+const User      = require("../models/User");
+const createLog = require("../utils/createLog");
 
 const ALLOWED_STATUSES = ["PLACED", "PREPARING", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED"];
 
-/* ── STATUS SORT PRIORITY (DELIVERED last, PLACED first) ── */
 const STATUS_PRIORITY = {
   PLACED:           0,
   PREPARING:        1,
@@ -31,7 +31,7 @@ router.get("/customer/:customerId", async (req, res) => {
 });
 
 /* =========================================================
-   GET MERCHANT ORDERS  — sorted: active first, delivered last
+   GET MERCHANT ORDERS
 ========================================================= */
 router.get("/merchant/:merchantId", async (req, res) => {
   try {
@@ -39,7 +39,6 @@ router.get("/merchant/:merchantId", async (req, res) => {
       .populate("customerId", "name phone email")
       .sort({ createdAt: -1 });
 
-    /* Sort by status priority, then by newest inside each group */
     const sorted = orders.sort(
       (a, b) =>
         (STATUS_PRIORITY[a.orderStatus] ?? 99) -
@@ -74,6 +73,15 @@ router.put("/:orderId/status", async (req, res) => {
 
     if (!updatedOrder)
       return res.status(404).json({ success: false, message: "Order not found" });
+
+    const merchant = await User.findById(updatedOrder.merchantId).select("name role");
+
+    await createLog({
+      user:   merchant?.name || updatedOrder.merchantId?.toString() || "Unknown",
+      role:   merchant?.role || "Merchant",
+      action: `Updated order ${orderId} status to ${orderStatus}`,
+      status: "Success",
+    });
 
     res.status(200).json({ success: true, message: "Order status updated", order: updatedOrder });
   } catch (error) {

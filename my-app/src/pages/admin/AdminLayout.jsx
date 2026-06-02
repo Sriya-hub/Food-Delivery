@@ -1,9 +1,16 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import Sidebar        from "../../components/admin/sidebar";
-import Header         from "../../components/admin/header";
-import Home           from "./Home";
+
+import Sidebar from "../../components/admin/sidebar";
+import Header from "../../components/admin/header";
+
+import Home from "./Home";
 import AdminDashboard from "./AdminDashboard";
 import AdminCustomers from "./AdminCustomers";
+import AdminDelivery from "./AdminDelivery";
+import AdminSettings from "./AdminSettings";
+import Analytics from "./Analytics";
+import Logs from "./Logs";
+
 import "./AdminLayout.css";
 
 export default function AdminLayout() {
@@ -14,13 +21,24 @@ export default function AdminLayout() {
       <div className="admin-main">
         <Routes>
 
-          {/* Overview */}
+          {/* Dashboard */}
           <Route
             path="/"
             element={
               <>
                 <Header title="Dashboard" />
                 <Home />
+              </>
+            }
+          />
+
+          {/* Analytics */}
+          <Route
+            path="/analytics"
+            element={
+              <>
+                <Header title="Analytics" />
+                <Analytics />
               </>
             }
           />
@@ -47,8 +65,43 @@ export default function AdminLayout() {
             }
           />
 
-          {/* Fallback → redirect to /admin */}
-          <Route path="*" element={<Navigate to="/admin" replace />} />
+          {/* Delivery Partners */}
+          <Route
+            path="/delivery"
+            element={
+              <>
+                <Header title="Delivery Partners" />
+                <AdminDelivery />
+              </>
+            }
+          />
+
+          {/* Settings */}
+          <Route
+            path="/settings"
+            element={
+              <>
+                <Header title="Website Settings" />
+                <AdminSettings />
+              </>
+            }
+          />
+
+          <Route
+  path="/logs"
+  element={
+    <>
+      <Header title="System Logs" />
+      <Logs />
+    </>
+  }
+/>
+
+          {/* Fallback */}
+          <Route
+            path="*"
+            element={<Navigate to="/admin" replace />}
+          />
 
         </Routes>
       </div>

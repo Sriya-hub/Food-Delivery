@@ -3,6 +3,7 @@ const router  = express.Router();
 const multer  = require("multer");
 const path    = require("path");
 const Food    = require("../models/Food");
+const createLog = require("../utils/createLog");
 
 /* ── MULTER ── */
 const storage = multer.diskStorage({
@@ -21,6 +22,14 @@ router.post("/add-food", upload.single("image"), async (req, res) => {
       image: req.file ? `/uploads/${req.file.filename}` : "",
     });
     await newFood.save();
+
+    await createLog({
+      user:   merchantId,
+      role:   "Merchant",
+      action: `Added new food item: ${name}`,
+      status: "Success",
+    });
+
     res.status(201).json({ success: true, message: "Food Added Successfully", food: newFood });
   } catch (error) {
     console.error("Add Food Error:", error);
@@ -34,8 +43,6 @@ router.put("/update-food/:id", upload.single("image"), async (req, res) => {
     const { name, category, description, price, stock, available } = req.body;
 
     const updates = { name, category, description, price, stock, available };
-
-    // only replace image if a new file was uploaded
     if (req.file) updates.image = `/uploads/${req.file.filename}`;
 
     const updatedFood = await Food.findByIdAndUpdate(
@@ -45,6 +52,13 @@ router.put("/update-food/:id", upload.single("image"), async (req, res) => {
     );
 
     if (!updatedFood) return res.status(404).json({ success: false, message: "Food not found" });
+
+    await createLog({
+      user:   updatedFood.merchantId,
+      role:   "Merchant",
+      action: `Updated food item: ${updatedFood.name}`,
+      status: "Success",
+    });
 
     res.status(200).json({ success: true, message: "Food Updated Successfully", food: updatedFood });
   } catch (error) {
@@ -69,6 +83,7 @@ router.get("/foods/:merchantId", async (req, res) => {
   try {
     const { merchantId } = req.params;
     if (!merchantId) return res.status(400).json({ success: false, message: "Merchant ID Required" });
+
     const foods = await Food.find({ merchantId }).sort({ createdAt: -1 });
     res.status(200).json({ success: true, totalFoods: foods.length, foods });
   } catch (error) {
@@ -80,7 +95,15 @@ router.get("/foods/:merchantId", async (req, res) => {
 /* ── DELETE FOOD ── */
 router.delete("/delete-food/:id", async (req, res) => {
   try {
-    await Food.findByIdAndDelete(req.params.id);
+    const deletedFood = await Food.findByIdAndDelete(req.params.id);
+
+    await createLog({
+      user:   deletedFood?.merchantId || "Unknown",
+      role:   "Merchant",
+      action: `Deleted food item: ${deletedFood?.name || req.params.id}`,
+      status: "Success",
+    });
+
     res.status(200).json({ success: true, message: "Food Deleted Successfully" });
   } catch (error) {
     console.error("Delete Food Error:", error);

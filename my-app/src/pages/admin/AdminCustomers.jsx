@@ -1,8 +1,43 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import "./AdminCustomers.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
+
+/* ── Animated Counter ── */
+function CountUp({ target, duration = 1000 }) {
+  const [val, setVal] = useState(0);
+  const started = useRef(false);
+  const ref = useRef(null);
+  const num = Math.max(0, parseInt(target, 10) || 0);
+
+  useEffect(() => { started.current = false; setVal(0); }, [num]);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let cancelled = false;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !started.current) {
+        started.current = true;
+        const start = performance.now();
+        const tick = (now) => {
+          if (cancelled) return;
+          const p = Math.min((now - start) / duration, 1);
+          setVal(Math.round((1 - Math.pow(1 - p, 3)) * num));
+          if (p < 1) requestAnimationFrame(tick);
+          else setVal(num);
+        };
+        requestAnimationFrame(tick);
+        obs.disconnect();
+      }
+    }, { threshold: 0.3 });
+    obs.observe(el);
+    return () => { cancelled = true; obs.disconnect(); };
+  }, [num, duration]);
+
+  return <span ref={ref}>{val ?? 0}</span>;
+}
 
 function AdminCustomers() {
   const [customers, setCustomers] = useState([]);
@@ -10,7 +45,6 @@ function AdminCustomers() {
   const [search, setSearch]       = useState("");
   const [loading, setLoading]     = useState(true);
 
-  /* ── fetch ── */
   const fetchCustomers = async () => {
     try {
       const res = await axios.get(`${API_URL}/api/admin/customers`);
@@ -24,7 +58,6 @@ function AdminCustomers() {
 
   useEffect(() => { fetchCustomers(); }, []);
 
-  /* ── block / unblock ── */
   const handleBlock = async (id) => {
     try {
       await axios.put(`${API_URL}/api/admin/customers/block/${id}`);
@@ -39,14 +72,12 @@ function AdminCustomers() {
     } catch (err) { console.log(err); }
   };
 
-  /* ── counts ── */
   const counts = {
     all:     customers.length,
     active:  customers.filter((c) => !c.isBlocked).length,
     blocked: customers.filter((c) =>  c.isBlocked).length,
   };
 
-  /* ── filtered + searched ── */
   const filtered = customers
     .filter((c) => {
       if (filter === "active")  return !c.isBlocked;
@@ -62,15 +93,14 @@ function AdminCustomers() {
       );
     });
 
-  /* ── avatar initials ── */
-  const initials = (name = "") =>
-    name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  const initials  = (name = "") => name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  const formatDate = (iso) => new Date(iso).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
 
-  /* ── join date ── */
-  const formatDate = (iso) =>
-    new Date(iso).toLocaleDateString("en-IN", {
-      day: "2-digit", month: "short", year: "numeric",
-    });
+  const STAT_CARDS = [
+    { label: "Total Customers", value: counts.all,     cls: "cst-blue",  icon: <UsersIcon />,  delay: 0   },
+    { label: "Active",          value: counts.active,  cls: "cst-green", icon: <CheckIcon />,  delay: 80  },
+    { label: "Blocked",         value: counts.blocked, cls: "cst-red",   icon: <BlockIcon />,  delay: 160 },
+  ];
 
   const TABS = [
     { key: "all",     label: "All Customers" },
@@ -91,30 +121,23 @@ function AdminCustomers() {
 
       {/* ── Stat Cards ── */}
       <div className="cust-stats">
-        <div className="cst-card cst-blue">
-          <UsersIcon />
-          <div>
-            <span className="cst-num">{counts.all}</span>
-            <span className="cst-lbl">Total</span>
+        {STAT_CARDS.map(({ label, value, cls, icon, delay }) => (
+          <div
+            key={label}
+            className={`cst-card ${cls}`}
+            style={{ animationDelay: `${delay}ms` }}
+          >
+            <div className="cst-icon">{icon}</div>
+            <div className="cst-body">
+              <span className="cst-num"><CountUp target={value} /></span>
+              <span className="cst-lbl">{label}</span>
+            </div>
+            <div className="cst-glow" />
           </div>
-        </div>
-        <div className="cst-card cst-green">
-          <CheckIcon />
-          <div>
-            <span className="cst-num">{counts.active}</span>
-            <span className="cst-lbl">Active</span>
-          </div>
-        </div>
-        <div className="cst-card cst-red">
-          <BlockIcon />
-          <div>
-            <span className="cst-num">{counts.blocked}</span>
-            <span className="cst-lbl">Blocked</span>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* ── Toolbar: tabs + search ── */}
+      {/* ── Toolbar ── */}
       <div className="cust-toolbar">
         <div className="cust-tabs">
           {TABS.map(({ key, label }) => (
@@ -138,12 +161,18 @@ function AdminCustomers() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          {search && (
+            <button className="search-clear" onClick={() => setSearch("")}>✕</button>
+          )}
         </div>
       </div>
 
       {/* ── Table ── */}
       {loading ? (
-        <div className="cust-loading">Loading customers…</div>
+        <div className="cust-loading">
+          <div className="cust-spinner" />
+          <span>Loading customers…</span>
+        </div>
       ) : (
         <div className="cust-table-wrap">
           <table className="cust-table">
@@ -160,10 +189,13 @@ function AdminCustomers() {
             </thead>
             <tbody>
               {filtered.map((c, i) => (
-                <tr key={c._id} className={c.isBlocked ? "row-blocked" : ""}>
+                <tr
+                  key={c._id}
+                  className={`cust-row ${c.isBlocked ? "row-blocked" : ""}`}
+                  style={{ animationDelay: `${i * 35}ms` }}
+                >
                   <td className="td-num">{i + 1}</td>
 
-                  {/* Avatar + name */}
                   <td>
                     <div className="cust-identity">
                       <div className={`cust-avatar ${c.isBlocked ? "avatar-blocked" : ""}`}>
@@ -177,27 +209,19 @@ function AdminCustomers() {
                   <td className="td-muted">{c.phoneNumber || "—"}</td>
                   <td className="td-muted">{formatDate(c.createdAt)}</td>
 
-                  {/* Status badge */}
                   <td>
                     <span className={`cbadge ${c.isBlocked ? "cbadge-blocked" : "cbadge-active"}`}>
                       {c.isBlocked ? "Blocked" : "Active"}
                     </span>
                   </td>
 
-                  {/* Actions */}
                   <td>
                     {c.isBlocked ? (
-                      <button
-                        className="btn-unblock"
-                        onClick={() => handleUnblock(c._id)}
-                      >
+                      <button className="btn-unblock" onClick={() => handleUnblock(c._id)}>
                         <UnlockIcon /> Unblock
                       </button>
                     ) : (
-                      <button
-                        className="btn-block"
-                        onClick={() => handleBlock(c._id)}
-                      >
+                      <button className="btn-block" onClick={() => handleBlock(c._id)}>
                         <LockIcon /> Block
                       </button>
                     )}
