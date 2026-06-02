@@ -7,7 +7,6 @@ const createLog = require("../utils/createLog");
 
 const ALLOWED_STATUSES = ["PLACED", "PREPARING", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED"];
 
-/* ── STATUS SORT PRIORITY (DELIVERED last, PLACED first) ── */
 const STATUS_PRIORITY = {
   PLACED:           0,
   PREPARING:        1,
@@ -25,13 +24,6 @@ router.get("/customer/:customerId", async (req, res) => {
       .populate("customerId", "name phone email")
       .sort({ createdAt: -1 });
 
-    await createLog({
-      user:   req.params.customerId,
-      role:   "Customer",
-      action: "Fetched own order history",
-      status: "Success",
-    });
-
     res.status(200).json({ success: true, orders });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -39,7 +31,7 @@ router.get("/customer/:customerId", async (req, res) => {
 });
 
 /* =========================================================
-   GET MERCHANT ORDERS  — sorted: active first, delivered last
+   GET MERCHANT ORDERS
 ========================================================= */
 router.get("/merchant/:merchantId", async (req, res) => {
   try {
@@ -47,19 +39,11 @@ router.get("/merchant/:merchantId", async (req, res) => {
       .populate("customerId", "name phone email")
       .sort({ createdAt: -1 });
 
-    /* Sort by status priority, then by newest inside each group */
     const sorted = orders.sort(
       (a, b) =>
         (STATUS_PRIORITY[a.orderStatus] ?? 99) -
         (STATUS_PRIORITY[b.orderStatus] ?? 99)
     );
-
-    await createLog({
-      user:   req.params.merchantId,
-      role:   "Merchant",
-      action: "Fetched own orders list",
-      status: "Success",
-    });
 
     res.status(200).json({ success: true, merchantId: req.params.merchantId, orders: sorted });
   } catch (error) {
@@ -90,10 +74,12 @@ router.put("/:orderId/status", async (req, res) => {
     if (!updatedOrder)
       return res.status(404).json({ success: false, message: "Order not found" });
 
+    const merchant = await User.findById(updatedOrder.merchantId).select("name role");
+
     await createLog({
-      user:   updatedOrder.merchantId?.toString() || "Unknown",
-      role:   "Merchant",
-      action: `Updated order status to ${orderStatus} for order: ${orderId}`,
+      user:   merchant?.name || updatedOrder.merchantId?.toString() || "Unknown",
+      role:   merchant?.role || "Merchant",
+      action: `Updated order ${orderId} status to ${orderStatus}`,
       status: "Success",
     });
 
@@ -118,13 +104,6 @@ router.get("/:orderId", async (req, res) => {
 
     if (!order)
       return res.status(404).json({ success: false, message: "Order not found" });
-
-    await createLog({
-      user:   order.customerId?.name || order.customerId?.toString() || "Unknown",
-      role:   "Customer",
-      action: `Fetched single order: ${orderId}`,
-      status: "Success",
-    });
 
     res.status(200).json({ success: true, order });
   } catch (error) {

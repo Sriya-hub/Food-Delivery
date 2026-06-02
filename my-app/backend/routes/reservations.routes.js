@@ -3,11 +3,10 @@ const router       = express.Router();
 const jwt          = require("jsonwebtoken");
 const Reservation  = require("../models/Reservation");
 const User         = require("../models/User");
+const createLog    = require("../utils/createLog");
 
 /* =========================
    AUTH MIDDLEWARE
-   Verifies the Bearer token
-   and attaches req.userId
 ========================= */
 function authMiddleware(req, res, next) {
   const header = req.headers.authorization;
@@ -27,10 +26,8 @@ function authMiddleware(req, res, next) {
 }
 
 /* ==============================================
-   GET /api/reservations/availability
-   Public — check how many tables are free
-   for a given restaurant + date + time slot
-   ============================================== */
+   GET /availability — no log (read-only)
+============================================== */
 router.get("/availability", async (req, res) => {
   try {
     const { restaurantId, date, time } = req.query;
@@ -42,7 +39,6 @@ router.get("/availability", async (req, res) => {
       });
     }
 
-    // Get total tables configured by the merchant
     const merchant = await User.findById(restaurantId).select(
       "totalTables tableReservationEnabled"
     );
@@ -60,7 +56,6 @@ router.get("/availability", async (req, res) => {
 
     const totalTables = merchant.totalTables || 0;
 
-    // Count active bookings for this slot
     const booked = await Reservation.countDocuments({
       restaurantId,
       date,
@@ -71,7 +66,7 @@ router.get("/availability", async (req, res) => {
     const availableTables = Math.max(0, totalTables - booked);
 
     res.status(200).json({
-      success:         true,
+      success: true,
       totalTables,
       booked,
       availableTables,
@@ -83,10 +78,8 @@ router.get("/availability", async (req, res) => {
 });
 
 /* ==============================================
-   POST /api/reservations
-   Customer creates a reservation
-   Requires auth token
-   ============================================== */
+   POST / — Customer creates a reservation
+============================================== */
 router.post("/", authMiddleware, async (req, res) => {
   try {
     const { restaurantId, date, time, guests, note } = req.body;
@@ -98,7 +91,6 @@ router.post("/", authMiddleware, async (req, res) => {
       });
     }
 
-    // Verify restaurant has reservation enabled
     const merchant = await User.findById(restaurantId).select(
       "totalTables tableReservationEnabled maxGuestsPerTable restaurantName"
     );
@@ -114,7 +106,6 @@ router.post("/", authMiddleware, async (req, res) => {
       });
     }
 
-    // Check guest limit per table
     if (merchant.maxGuestsPerTable && guests > merchant.maxGuestsPerTable) {
       return res.status(400).json({
         success: false,
@@ -122,7 +113,6 @@ router.post("/", authMiddleware, async (req, res) => {
       });
     }
 
-    // Check availability
     const totalTables = merchant.totalTables || 0;
     const booked = await Reservation.countDocuments({
       restaurantId,
@@ -138,7 +128,6 @@ router.post("/", authMiddleware, async (req, res) => {
       });
     }
 
-    // Create reservation
     const reservation = await Reservation.create({
       customerId:   req.userId,
       restaurantId,
@@ -147,6 +136,15 @@ router.post("/", authMiddleware, async (req, res) => {
       guests:       Number(guests),
       note:         note || "",
       status:       "pending",
+    });
+
+    const customer = await User.findById(req.userId).select("name role");
+
+    await createLog({
+      user:   customer?.name || req.userId,
+      role:   customer?.role || "Customer",
+      action: `Reserved a table at ${merchant.restaurantName} on ${date} at ${time}`,
+      status: "Success",
     });
 
     res.status(201).json({
@@ -161,10 +159,8 @@ router.post("/", authMiddleware, async (req, res) => {
 });
 
 /* ==============================================
-   GET /api/reservations/my
-   Customer views their own bookings
-   Requires auth token
-   ============================================== */
+   GET /my — no log (read-only)
+============================================== */
 router.get("/my", authMiddleware, async (req, res) => {
   try {
     const reservations = await Reservation.find({ customerId: req.userId })
@@ -179,10 +175,8 @@ router.get("/my", authMiddleware, async (req, res) => {
 });
 
 /* ==============================================
-   GET /api/reservations/merchant/:restaurantId
-   Merchant views all bookings for their restaurant
-   Requires auth token
-   ============================================== */
+   GET /merchant/:restaurantId — no log (read-only)
+============================================== */
 router.get("/merchant/:restaurantId", authMiddleware, async (req, res) => {
   try {
     const reservations = await Reservation.find({
@@ -199,11 +193,8 @@ router.get("/merchant/:restaurantId", authMiddleware, async (req, res) => {
 });
 
 /* ==============================================
-   PATCH /api/reservations/:id/status
-   Merchant updates booking status
-   (confirmed / cancelled / completed)
-   Requires auth token
-   ============================================== */
+   PATCH /:id/status — Merchant updates status
+============================================== */
 router.patch("/:id/status", authMiddleware, async (req, res) => {
   try {
     const { status } = req.body;
@@ -223,6 +214,15 @@ router.patch("/:id/status", authMiddleware, async (req, res) => {
       return res.status(404).json({ success: false, message: "Reservation not found" });
     }
 
+    const merchant = await User.findById(req.userId).select("name role");
+
+    await createLog({
+      user:   merchant?.name || req.userId,
+      role:   merchant?.role || "Merchant",
+      action: `Marked reservation as ${status}`,
+      status: "Success",
+    });
+
     res.status(200).json({
       success: true,
       message: `Reservation marked as ${status}`,
@@ -235,10 +235,8 @@ router.patch("/:id/status", authMiddleware, async (req, res) => {
 });
 
 /* ==============================================
-   DELETE /api/reservations/:id
-   Customer cancels their own booking
-   Requires auth token
-   ============================================== */
+   DELETE /:id — Customer cancels reservation
+============================================== */
 router.delete("/:id", authMiddleware, async (req, res) => {
   try {
     const reservation = await Reservation.findOne({
@@ -262,6 +260,15 @@ router.delete("/:id", authMiddleware, async (req, res) => {
 
     reservation.status = "cancelled";
     await reservation.save();
+
+    const customer = await User.findById(req.userId).select("name role");
+
+    await createLog({
+      user:   customer?.name || req.userId,
+      role:   customer?.role || "Customer",
+      action: "Cancelled a table reservation",
+      status: "Success",
+    });
 
     res.status(200).json({
       success: true,

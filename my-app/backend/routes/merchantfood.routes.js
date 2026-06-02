@@ -43,8 +43,6 @@ router.put("/update-food/:id", upload.single("image"), async (req, res) => {
     const { name, category, description, price, stock, available } = req.body;
 
     const updates = { name, category, description, price, stock, available };
-
-    // only replace image if a new file was uploaded
     if (req.file) updates.image = `/uploads/${req.file.filename}`;
 
     const updatedFood = await Food.findByIdAndUpdate(
@@ -73,14 +71,6 @@ router.put("/update-food/:id", upload.single("image"), async (req, res) => {
 router.get("/all-foods", async (req, res) => {
   try {
     const foods = await Food.find({ available: true }).sort({ createdAt: -1 });
-
-    await createLog({
-      user:   "System",
-      role:   "System",
-      action: "Fetched all available foods",
-      status: "Success",
-    });
-
     res.status(200).json({ success: true, totalFoods: foods.length, foods });
   } catch (error) {
     console.error("Get All Foods Error:", error);
@@ -95,14 +85,6 @@ router.get("/foods/:merchantId", async (req, res) => {
     if (!merchantId) return res.status(400).json({ success: false, message: "Merchant ID Required" });
 
     const foods = await Food.find({ merchantId }).sort({ createdAt: -1 });
-
-    await createLog({
-      user:   merchantId,
-      role:   "Merchant",
-      action: "Fetched own food listings",
-      status: "Success",
-    });
-
     res.status(200).json({ success: true, totalFoods: foods.length, foods });
   } catch (error) {
     console.error("Get Foods Error:", error);

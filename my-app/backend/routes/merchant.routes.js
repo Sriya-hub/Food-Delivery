@@ -42,7 +42,6 @@ router.put("/register/:id", upload.single("restaurantImage"), async (req, res) =
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // Basic fields
     user.restaurantName    = req.body.restaurantName;
     user.phoneNumber       = req.body.phoneNumber;
     user.restaurantAddress = req.body.restaurantAddress;
@@ -50,18 +49,16 @@ router.put("/register/:id", upload.single("restaurantImage"), async (req, res) =
     user.openingTime       = req.body.openingTime;
     user.closingTime       = req.body.closingTime;
 
-    // Location from browser Geolocation API (no geocoding)
     const latitude  = parseFloat(req.body.latitude);
     const longitude = parseFloat(req.body.longitude);
 
     if (!isNaN(latitude) && !isNaN(longitude)) {
       user.location = {
         type:        "Point",
-        coordinates: [longitude, latitude], // GeoJSON: [lng, lat]
+        coordinates: [longitude, latitude],
       };
     }
 
-    // Restaurant image
     if (req.file) {
       user.restaurantImage = `/uploads/${req.file.filename}`;
     }
@@ -104,13 +101,6 @@ router.get("/approved-restaurants", async (req, res) => {
       )
       .sort({ createdAt: -1 });
 
-    await createLog({
-      user:   "System",
-      role:   "System",
-      action: "Fetched approved restaurants list",
-      status: "Success",
-    });
-
     res.status(200).json({
       success:          true,
       totalRestaurants: restaurants.length,
@@ -134,13 +124,6 @@ router.get("/:id", async (req, res) => {
     if (!user) {
       return res.status(404).json({ success: false, message: "Merchant not found" });
     }
-
-    await createLog({
-      user:   user.name,
-      role:   user.role,
-      action: "Fetched single merchant profile",
-      status: "Success",
-    });
 
     res.status(200).json({ success: true, user });
   } catch (error) {
