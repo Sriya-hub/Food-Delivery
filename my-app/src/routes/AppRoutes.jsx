@@ -38,6 +38,7 @@ import AdminCustomers from "../pages/admin/AdminCustomers";
 import AdminDelivery  from "../pages/admin/AdminDelivery";
 import AdminSettings  from "../pages/admin/AdminSettings";
 import AdminProtectedRoute from "./AdminProtectedRoute";
+import Analytics from "../pages/admin/Analytics";
 
 /* ══════════════════════════════
    404
@@ -190,19 +191,25 @@ export default function AppRoutes() {
 
         {/* ── Admin — nested inside AdminLayout (ALL protected) ── */}
         <Route
-          path="/admin"
-          element={
-            <AdminProtectedRoute>
-              <AdminLayout />
-            </AdminProtectedRoute>
-          }
-        >
-          <Route index            element={<AdminHome />} />
-          <Route path="merchants" element={<AdminDashboard />} />
-          <Route path="customers" element={<AdminCustomers />} />
-          <Route path="delivery"  element={<AdminDelivery />} />
-          <Route path="settings"  element={<AdminSettings />} />
-        </Route>
+  path="/admin"
+  element={
+    <AdminProtectedRoute>
+      <AdminLayout />
+    </AdminProtectedRoute>
+  }
+>
+  <Route index element={<AdminHome />} />
+
+  <Route path="analytics" element={<Analytics />} />
+
+  <Route path="merchants" element={<AdminDashboard />} />
+
+  <Route path="customers" element={<AdminCustomers />} />
+
+  <Route path="delivery" element={<AdminDelivery />} />
+
+  <Route path="settings" element={<AdminSettings />} />
+</Route>
 
         {/* ── 404 ── */}
         <Route path="*" element={<NotFound />} />

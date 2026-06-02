@@ -1,0 +1,395 @@
+/* ===========================
+   ANALYTICS PAGE
+=========================== */
+
+.analytics-page {
+  padding: 28px;
+  background: #f4f6fb;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ===========================
+   HEADER
+=========================== */
+
+.analytics-header {
+  margin-bottom: 24px;
+}
+
+.analytics-header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 4px;
+}
+
+.analytics-header p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ===========================
+   NAV TABS
+=========================== */
+
+.analytics-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.nav-tab {
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.nav-tab:hover {
+  background: #f9fafb;
+  color: #111827;
+}
+
+.nav-tab.active {
+  background: #16a34a;
+  color: #fff;
+  border-color: #16a34a;
+}
+
+/* ===========================
+   METRIC CARDS ROW
+=========================== */
+
+.metric-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.metric-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.metric-card .label {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 6px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.metric-card .value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+}
+
+.metric-card .sub {
+  font-size: 12px;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+.metric-card .sub.up {
+  color: #16a34a;
+}
+
+.metric-card .sub.down {
+  color: #dc2626;
+}
+
+/* ===========================
+   CHART GRID
+=========================== */
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.chart-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  padding: 20px 22px;
+}
+
+.chart-card.col-8 {
+  grid-column: span 8;
+}
+
+.chart-card.col-4 {
+  grid-column: span 4;
+}
+
+.chart-card.col-6 {
+  grid-column: span 6;
+}
+
+.chart-card.col-12 {
+  grid-column: span 12;
+}
+
+.chart-card h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 16px;
+}
+
+.chart-wrap {
+  position: relative;
+  width: 100%;
+}
+
+/* ===========================
+   LEGEND
+=========================== */
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ===========================
+   INSIGHT CARDS
+=========================== */
+
+.insight-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.insight-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+
+.insight-icon {
+  width: 36px;
+  height: 36px;
+  background: #dcfce7;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  font-size: 18px;
+  color: #16a34a;
+}
+
+.insight-label {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 4px;
+}
+
+.insight-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* ===========================
+   RANK LIST
+=========================== */
+
+.rank-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.rank-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 13px;
+}
+
+.rank-list li:last-child {
+  border-bottom: none;
+}
+
+.rank-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #374151;
+}
+
+.rank-name {
+  flex: 1;
+  color: #374151;
+  font-weight: 500;
+}
+
+.rank-val {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+/* ===========================
+   SIMPLE BARS
+=========================== */
+
+.bar-simple {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bar-label {
+  width: 74px;
+  text-align: right;
+  font-size: 12px;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.bar-track {
+  flex: 1;
+  height: 10px;
+  background: #f3f4f6;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.6s ease;
+}
+
+.bar-count {
+  width: 52px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* ===========================
+   LOADING STATE
+=========================== */
+
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #9ca3af;
+  font-size: 14px;
+  gap: 10px;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #16a34a;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===========================
+   ERROR STATE
+=========================== */
+
+.error-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+  color: #dc2626;
+  font-size: 13px;
+  background: #fef2f2;
+  border-radius: 10px;
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+
+@media (max-width: 900px) {
+  .chart-card.col-8,
+  .chart-card.col-4,
+  .chart-card.col-6 {
+    grid-column: span 12;
+  }
+}
+
+@media (max-width: 600px) {
+  .analytics-page {
+    padding: 16px;
+  }
+
+  .analytics-nav {
+    gap: 6px;
+  }
+
+  .nav-tab {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .metric-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
