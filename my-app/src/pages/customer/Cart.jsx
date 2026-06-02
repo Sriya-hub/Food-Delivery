@@ -27,7 +27,7 @@ export default function Cart() {
   const clear = ()   => save([]);
 
   const subtotal = items.reduce((s, i) => s + Number(i.price) * i.quantity, 0);
-  const delivery = items.length > 0 ? 40 : 0;
+  const delivery = items.length > 0 ? 0 : 0;
   const total    = subtotal + delivery;
   const totalQty = items.reduce((s, i) => s + i.quantity, 0);
 

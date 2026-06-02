@@ -161,7 +161,7 @@ export default function Checkout() {
 
   /* ── Totals ── */
   const subtotal   = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const delivery   = cart.length ? 40 : 0;
+  const delivery   = cart.length ? 0 : 0;
   const total      = subtotal + delivery;
   const totalQty   = cart.reduce((s, i) => s + i.quantity, 0);
   const merchantId = cart[0]?.restaurantId || cart[0]?.merchantId || "";
