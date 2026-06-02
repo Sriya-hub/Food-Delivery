@@ -9,6 +9,7 @@ import AdminCustomers from "./AdminCustomers";
 import AdminDelivery from "./AdminDelivery";
 import AdminSettings from "./AdminSettings";
 import Analytics from "./Analytics";
+import Logs from "./Logs";
 
 import "./AdminLayout.css";
 
@@ -85,6 +86,16 @@ export default function AdminLayout() {
               </>
             }
           />
+
+          <Route
+  path="/logs"
+  element={
+    <>
+      <Header title="System Logs" />
+      <Logs />
+    </>
+  }
+/>
 
           {/* Fallback */}
           <Route

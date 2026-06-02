@@ -39,6 +39,7 @@ import AdminDelivery  from "../pages/admin/AdminDelivery";
 import AdminSettings  from "../pages/admin/AdminSettings";
 import AdminProtectedRoute from "./AdminProtectedRoute";
 import Analytics from "../pages/admin/Analytics";
+import Logs from "../pages/admin/Logs";
 
 /* ══════════════════════════════
    404
@@ -202,13 +203,15 @@ export default function AppRoutes() {
 
   <Route path="analytics" element={<Analytics />} />
 
-  <Route path="merchants" element={<AdminDashboard />} />
+<Route path="logs" element={<Logs />} />
 
-  <Route path="customers" element={<AdminCustomers />} />
+<Route path="merchants" element={<AdminDashboard />} />
 
-  <Route path="delivery" element={<AdminDelivery />} />
+<Route path="customers" element={<AdminCustomers />} />
 
-  <Route path="settings" element={<AdminSettings />} />
+<Route path="delivery" element={<AdminDelivery />} />
+
+<Route path="settings" element={<AdminSettings />} />
 </Route>
 
         {/* ── 404 ── */}

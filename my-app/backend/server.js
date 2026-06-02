@@ -74,6 +74,11 @@ app.use(
   require("./routes/adminAnalytics.routes")
 );
 
+app.use(
+  "/api/admin/logs",
+  require("./routes/log.routes")
+);
+
 /* PUBLIC SETTINGS — used by frontend to read maintenanceMode
    Must be registered so /api/settings is not blocked by maintenanceCheck
    (it is already in the exclusions list inside the middleware)       */
