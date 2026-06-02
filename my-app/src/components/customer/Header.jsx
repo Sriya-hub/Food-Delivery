@@ -1,13 +1,12 @@
 import "./Header.css";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 /* ══════════════════════════════════════
    MAINTENANCE TICKER
-   Shown below header when maintenance is ON
 ══════════════════════════════════════ */
 const MAINTENANCE_MESSAGES = [
   "🔧  Scheduled maintenance in progress — some features may be temporarily unavailable",
@@ -35,26 +34,20 @@ function MaintenanceTicker({ settings }) {
 
   return (
     <div className="maint-ticker" role="alert" aria-live="polite">
-      {/* Left badge */}
       <div className="maint-ticker__badge">
         <span className="maint-ticker__dot" aria-hidden="true" />
         <span>Maintenance</span>
       </div>
-
-      {/* Scrolling text */}
       <div className="maint-ticker__scroll" aria-label="Maintenance notice">
         <div className="maint-ticker__track">
           <span aria-hidden="true">{text}&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;</span>
           <span aria-hidden="true">{text}&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;</span>
         </div>
       </div>
-
-      {/* Right — estimated back online */}
       {end && (
         <div className="maint-ticker__eta">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 6v6l4 2" />
+            <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
           </svg>
           <span>Back by {end}</span>
         </div>
@@ -65,14 +58,130 @@ function MaintenanceTicker({ settings }) {
 
 
 /* ══════════════════════════════════════
-   LOCATION MODAL
+   MAP LOCATION MODAL  (Leaflet — mock)
 ══════════════════════════════════════ */
-function LocationModal({ onClose, onSelect }) {
-  const [query, setQuery]     = useState("");
-  const [results, setResults] = useState([]);
-  const [detecting, setDetect]= useState(false);
+let leafletLoaded = false;
+
+function MapLocationModal({ onClose, onSelect }) {
+  const mapContainerRef = useRef(null);
+  const mapRef          = useRef(null);
+  const markerRef       = useRef(null);
+
+  const [query, setQuery]       = useState("");
+  const [results, setResults]   = useState([]);
+  const [detecting, setDetect]  = useState(false);
+  const [tab, setTab]           = useState("search"); // "search" | "map"
+  const [pinLabel, setPinLabel] = useState("Drag the pin to your location");
+  const [confirming, setConfirm]= useState(false);
+  const [pinLatLon, setPinLatLon] = useState(null);
+
   const RECENT = JSON.parse(localStorage.getItem("foodie_recent") || "[]");
 
+  /* ── Load Leaflet CSS + JS once ── */
+  useEffect(() => {
+    if (!document.getElementById("leaflet-css")) {
+      const link = document.createElement("link");
+      link.id   = "leaflet-css";
+      link.rel  = "stylesheet";
+      link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+      document.head.appendChild(link);
+    }
+
+    if (!leafletLoaded) {
+      const script = document.createElement("script");
+      script.src   = "https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.js";
+      script.onload = () => { leafletLoaded = true; if (tab === "map") initMap(); };
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  /* ── Init map when tab switches to "map" ── */
+  useEffect(() => {
+    if (tab === "map" && leafletLoaded) {
+      setTimeout(initMap, 80); // let DOM paint
+    }
+  }, [tab]);
+
+  const initMap = () => {
+    if (!mapContainerRef.current || mapRef.current) return;
+    const L   = window.L;
+    const lat  = 19.076, lon = 72.877; // Mumbai default
+
+    mapRef.current = L.map(mapContainerRef.current, {
+      center: [lat, lon],
+      zoom: 13,
+      zoomControl: false,
+    });
+
+    L.control.zoom({ position: "bottomright" }).addTo(mapRef.current);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors",
+      maxZoom: 19,
+    }).addTo(mapRef.current);
+
+    /* Custom orange pin icon */
+    const icon = L.divIcon({
+      className: "",
+      html: `<div style="
+        width:36px;height:44px;
+        background:linear-gradient(135deg,#ff6b35,#f7931e);
+        border-radius:50% 50% 50% 0;
+        transform:rotate(-45deg);
+        border:3px solid #fff;
+        box-shadow:0 4px 16px rgba(0,0,0,0.28);
+        display:flex;align-items:center;justify-content:center;
+      "><div style="
+        width:12px;height:12px;
+        background:#fff;border-radius:50%;
+        transform:rotate(45deg);
+      "></div></div>`,
+      iconSize: [36, 44],
+      iconAnchor: [18, 44],
+    });
+
+    markerRef.current = L.marker([lat, lon], { icon, draggable: true })
+      .addTo(mapRef.current);
+
+    setPinLatLon({ lat, lon });
+    reverseGeocode(lat, lon);
+
+    markerRef.current.on("dragend", (e) => {
+      const { lat: la, lng: lo } = e.target.getLatLng();
+      setPinLatLon({ lat: la, lon: lo });
+      reverseGeocode(la, lo);
+    });
+
+    mapRef.current.on("click", (e) => {
+      const { lat: la, lng: lo } = e.latlng;
+      markerRef.current.setLatLng([la, lo]);
+      setPinLatLon({ lat: la, lon: lo });
+      reverseGeocode(la, lo);
+    });
+  };
+
+  const reverseGeocode = async (lat, lon) => {
+    setPinLabel("Locating…");
+    try {
+      const { data } = await axios.get(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+      );
+      const label = data.display_name?.split(",").slice(0, 3).join(", ") || "Selected location";
+      setPinLabel(label);
+      setPinLatLon({ lat, lon, label });
+    } catch {
+      setPinLabel("Selected location");
+      setPinLatLon({ lat, lon, label: "Selected location" });
+    }
+  };
+
+  /* ── Confirm map pin ── */
+  const confirmPin = () => {
+    if (!pinLatLon?.label) return;
+    onSelect({ label: pinLatLon.label, lat: pinLatLon.lat, lon: pinLatLon.lon });
+  };
+
+  /* ── Search ── */
   const search = async (q) => {
     setQuery(q);
     if (!q) return setResults([]);
@@ -84,6 +193,7 @@ function LocationModal({ onClose, onSelect }) {
     } catch { setResults([]); }
   };
 
+  /* ── GPS detect ── */
   const detectLocation = () => {
     setDetect(true);
     navigator.geolocation.getCurrentPosition(async ({ coords }) => {
@@ -99,63 +209,212 @@ function LocationModal({ onClose, onSelect }) {
   };
 
   const pick = (r) =>
-    onSelect({ label: r.display_name.split(",").slice(0, 3).join(", "), lat: r.lat, lon: r.lon });
+    onSelect({ label: r.display_name.split(",").slice(0, 3).join(", "), lat: +r.lat, lon: +r.lon });
+
+  /* ── Cleanup map on unmount ── */
+  useEffect(() => {
+    return () => {
+      if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
+    };
+  }, []);
 
   return (
     <div className="loc-overlay" onClick={onClose}>
-      <div className="loc-modal" onClick={e => e.stopPropagation()}>
+      <div className="loc-modal loc-modal--map" onClick={e => e.stopPropagation()}>
+
+        {/* ── Header ── */}
         <div className="loc-modal__head">
-          <h3>Set delivery location</h3>
-          <button className="loc-close" onClick={onClose}>✕</button>
+          <div className="loc-modal__head-left">
+            <div className="loc-modal__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                <circle cx="12" cy="9" r="2.5"/>
+              </svg>
+            </div>
+            <div>
+              <h3>Set delivery location</h3>
+              <p>Search or pin your exact spot on the map</p>
+            </div>
+          </div>
+          <button className="loc-close" onClick={onClose} aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
         </div>
-        <div className="loc-search">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="m21 21-4.35-4.35" strokeLinecap="round"/>
-          </svg>
-          <input
-            placeholder="Search area, street, city…"
-            value={query}
-            onChange={e => search(e.target.value)}
-            autoFocus
-          />
+
+        {/* ── Tabs ── */}
+        <div className="loc-tabs">
+          <button
+            className={`loc-tab ${tab === "search" ? "loc-tab--active" : ""}`}
+            onClick={() => setTab("search")}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            Search
+          </button>
+          <button
+            className={`loc-tab ${tab === "map" ? "loc-tab--active" : ""}`}
+            onClick={() => setTab("map")}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+              <line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
+            </svg>
+            Pick on map
+          </button>
         </div>
-        <button className="loc-detect" onClick={detectLocation} disabled={detecting}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M12 2v3M12 19v3M2 12h3M19 12h3" strokeLinecap="round"/>
-          </svg>
-          {detecting ? "Detecting…" : "Use my current location"}
-        </button>
-        {results.length > 0 && (
-          <ul className="loc-list">
-            {results.map((r, i) => (
-              <li key={i} onClick={() => pick(r)}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-                  <circle cx="12" cy="9" r="2.5"/>
+
+        {/* ══ SEARCH TAB ══ */}
+        {tab === "search" && (
+          <div className="loc-search-panel">
+            {/* GPS detect */}
+            <button className="loc-detect" onClick={detectLocation} disabled={detecting}>
+              <div className="loc-detect__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
                 </svg>
-                {r.display_name.split(",").slice(0, 3).join(", ")}
-              </li>
-            ))}
-          </ul>
-        )}
-        {!query && RECENT.length > 0 && (
-          <>
-            <p className="loc-label">Recent</p>
-            <ul className="loc-list">
-              {RECENT.map((r, i) => (
-                <li key={i} onClick={() => onSelect(r)}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M12 6v6l4 2" strokeLinecap="round"/>
+              </div>
+              <div className="loc-detect__text">
+                <span className="loc-detect__label">{detecting ? "Detecting your location…" : "Use current location"}</span>
+                <span className="loc-detect__sub">Uses device GPS</span>
+              </div>
+              {!detecting && (
+                <svg className="loc-detect__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              )}
+              {detecting && <div className="loc-spinner" />}
+            </button>
+
+            {/* Divider */}
+            <div className="loc-divider"><span>or search manually</span></div>
+
+            {/* Search input */}
+            <div className="loc-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input
+                placeholder="Search area, street, city…"
+                value={query}
+                onChange={e => search(e.target.value)}
+                autoFocus
+              />
+              {query && (
+                <button className="loc-search__clear" onClick={() => { setQuery(""); setResults([]); }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <path d="M18 6 6 18M6 6l12 12"/>
                   </svg>
-                  {r.label}
-                </li>
-              ))}
-            </ul>
-          </>
+                </button>
+              )}
+            </div>
+
+            {/* Results */}
+            {results.length > 0 && (
+              <ul className="loc-list">
+                {results.map((r, i) => (
+                  <li key={i} onClick={() => pick(r)}>
+                    <div className="loc-list__icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                        <circle cx="12" cy="9" r="2.5"/>
+                      </svg>
+                    </div>
+                    <div className="loc-list__text">
+                      <span className="loc-list__name">{r.display_name.split(",")[0]}</span>
+                      <span className="loc-list__sub">{r.display_name.split(",").slice(1, 3).join(", ")}</span>
+                    </div>
+                    <svg className="loc-list__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {/* Recent */}
+            {!query && RECENT.length > 0 && (
+              <>
+                <p className="loc-label">Recent searches</p>
+                <ul className="loc-list">
+                  {RECENT.map((r, i) => (
+                    <li key={i} onClick={() => onSelect(r)}>
+                      <div className="loc-list__icon loc-list__icon--recent">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                        </svg>
+                      </div>
+                      <div className="loc-list__text">
+                        <span className="loc-list__name">{r.label}</span>
+                      </div>
+                      <svg className="loc-list__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                      </svg>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {!query && RECENT.length === 0 && results.length === 0 && (
+              <div className="loc-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                <p>Search for your area or street</p>
+              </div>
+            )}
+          </div>
         )}
+
+        {/* ══ MAP TAB ══ */}
+        {tab === "map" && (
+          <div className="loc-map-panel">
+            {/* Map container */}
+            <div className="loc-map-wrap">
+              <div ref={mapContainerRef} className="loc-map" />
+
+              {/* Center crosshair hint */}
+              <div className="loc-map__hint">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+                </svg>
+                <span>Click on map or drag pin to set location</span>
+              </div>
+            </div>
+
+            {/* Pin address + confirm */}
+            <div className="loc-map-footer">
+              <div className="loc-map-footer__addr">
+                <div className="loc-map-footer__pin">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                    <circle cx="12" cy="9" r="2.5"/>
+                  </svg>
+                </div>
+                <div className="loc-map-footer__label">
+                  <span className="loc-map-footer__tag">Delivery to</span>
+                  <span className="loc-map-footer__addr-text">{pinLabel}</span>
+                </div>
+              </div>
+              <button
+                className="loc-map-footer__confirm"
+                onClick={confirmPin}
+                disabled={pinLabel === "Locating…" || pinLabel === "Drag the pin to your location"}
+              >
+                Confirm location
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
@@ -189,20 +448,17 @@ function CartIcon() {
   return (
     <button className="header__cart" onClick={() => navigate("/cart")} aria-label="View cart">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="9" cy="21" r="1"/>
-        <circle cx="20" cy="21" r="1"/>
+        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
         <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
       </svg>
-      {count > 0 && (
-        <span className="header__cart-badge">{count > 99 ? "99+" : count}</span>
-      )}
+      {count > 0 && <span className="header__cart-badge">{count > 99 ? "99+" : count}</span>}
     </button>
   );
 }
 
 
 /* ══════════════════════════════════════
-   NORMAL MARQUEE TICKER (no maintenance)
+   CENTER MARQUEE
 ══════════════════════════════════════ */
 const MARQUEE_ITEMS = [
   "🍕 Free delivery on orders above ₹299",
@@ -240,12 +496,7 @@ function UserDropdown({ user, onClose, menuRef }) {
 
   const go = (path) => { onClose(); navigate(path); };
 
-  const initials = user?.name
-    ?.split(" ")
-    .map(w => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const initials = user?.name?.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 
   return (
     <div className="hd-dropdown" ref={menuRef}>
@@ -263,8 +514,7 @@ function UserDropdown({ user, onClose, menuRef }) {
         <li onClick={() => go("/profile")}>
           <span className="hd-dropdown__icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="8" r="4"/>
-              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+              <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
             </svg>
           </span>
           <span>My Profile</span>
@@ -322,20 +572,17 @@ export default function Header() {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef();
 
-  /* ── Maintenance state ── */
-  const [maintenance, setMaintenance]       = useState(false);
-  const [maintSettings, setMaintSettings]   = useState(null);
+  const [maintenance, setMaintenance]     = useState(false);
+  const [maintSettings, setMaintSettings] = useState(null);
 
   useEffect(() => {
     const u = localStorage.getItem("user");
     if (u) setUser(JSON.parse(u));
     const loc = localStorage.getItem("foodie_location");
     if (loc) setLocation(JSON.parse(loc));
-
     fetchMaintenanceStatus();
   }, []);
 
-  /* Close dropdown on outside click */
   useEffect(() => {
     const handler = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false);
@@ -344,33 +591,17 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  /* Fetch /api/settings to check maintenance */
   const fetchMaintenanceStatus = async () => {
     try {
       const { data } = await axios.get(`${API_URL}/api/settings`);
       const s = data?.settings;
       if (!s || !s.maintenanceMode) return;
-
-      /* If scheduled window is set, only show ticker inside that window */
       if (s.maintenanceStartDate && s.maintenanceEndDate) {
-        const now   = new Date();
-        const start = new Date(s.maintenanceStartDate);
-        const end   = new Date(s.maintenanceEndDate);
-        if (now >= start && now <= end) {
-          setMaintenance(true);
-          setMaintSettings(s);
-        }
-      } else {
-        /* No schedule — always show */
-        setMaintenance(true);
-        setMaintSettings(s);
-      }
+        const now = new Date(), start = new Date(s.maintenanceStartDate), end = new Date(s.maintenanceEndDate);
+        if (now >= start && now <= end) { setMaintenance(true); setMaintSettings(s); }
+      } else { setMaintenance(true); setMaintSettings(s); }
     } catch (err) {
-      /* If /api/settings itself returns 503, maintenance IS active */
-      if (err.response?.status === 503) {
-        setMaintenance(true);
-        setMaintSettings({ maintenanceMode: true });
-      }
+      if (err.response?.status === 503) { setMaintenance(true); setMaintSettings({ maintenanceMode: true }); }
     }
   };
 
@@ -388,21 +619,15 @@ export default function Header() {
 
   return (
     <>
-      {/* ── STICKY WRAPPER — header + maintenance ticker together ── */}
       <div className="header-wrapper">
-
-        {/* ── MAINTENANCE TICKER (only when active) ── */}
         {maintenance && <MaintenanceTicker settings={maintSettings} />}
 
         <header className="header">
-
-          {/* ── Brand ── */}
           <div className="header__brand" onClick={() => navigate("/")}>
             <span className="header__logo">🍽</span>
             <span className="header__name">Foodie</span>
           </div>
 
-          {/* ── Location pill ── */}
           <button className="header__loc" onClick={() => setShowLoc(true)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
@@ -414,7 +639,6 @@ export default function Header() {
             </svg>
           </button>
 
-          {/* ── CENTER: normal promo marquee OR maintenance message ── */}
           {maintenance ? (
             <div className="header__maint-center">
               <span className="header__maint-center-text">
@@ -425,10 +649,8 @@ export default function Header() {
             <CenterMarquee />
           )}
 
-          {/* ── Right controls ── */}
           <div className="header__right">
             <CartIcon />
-
             {user ? (
               <div className="header__user" style={{ position: "relative" }}>
                 <button
@@ -440,13 +662,8 @@ export default function Header() {
                   <span>{initials}</span>
                 </button>
                 <span className="header__username">{user.name?.split(" ")[0]}</span>
-
                 {showMenu && (
-                  <UserDropdown
-                    user={user}
-                    onClose={() => setShowMenu(false)}
-                    menuRef={menuRef}
-                  />
+                  <UserDropdown user={user} onClose={() => setShowMenu(false)} menuRef={menuRef} />
                 )}
               </div>
             ) : (
@@ -462,7 +679,7 @@ export default function Header() {
       </div>
 
       {showLoc && (
-        <LocationModal onClose={() => setShowLoc(false)} onSelect={handleLocation} />
+        <MapLocationModal onClose={() => setShowLoc(false)} onSelect={handleLocation} />
       )}
     </>
   );
